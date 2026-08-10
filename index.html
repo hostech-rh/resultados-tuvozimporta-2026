@@ -538,15 +538,14 @@ function render() {
               <td>${fila.nivel}${fila.totalRespuestas > 0 ? ` <span style="color:var(--ink-muted); font-weight:400;">(${fila.totalRespuestas})</span>` : ''}</td>
               ${fila.bloques.map(b => {
                 if (b.n === 0) return `<td><span class="matriz-dot gris">–</span></td>`;
-                const tituloDetalle = `${b.nombre} · ${fila.nivel} (n=${b.n})\nOp.1: ${b.distribucion[0]}% · Op.2: ${b.distribucion[1]}% · Op.3: ${b.distribucion[2]}% · Op.4: ${b.distribucion[3]}%`;
-                return `<td title="${tituloDetalle}"><div class="matriz-cell-wrap"><span class="matriz-dot ${b.color}"></span><span class="matriz-pct">${b.pctPositivo}%${b.pctAlerta>0?` · ${b.pctAlerta}% alerta`:''}</span></div></td>`;
+                return `<td><div class="matriz-cell-wrap"><span class="matriz-dot ${b.color}"></span><span class="matriz-pct">${b.pctPositivo}%${b.pctAlerta>0?` · ${b.pctAlerta}% alerta`:''}</span></div></td>`;
               }).join('')}
             </tr>
           `).join('')}
         </tbody>
       </table>
     </div>
-    <div class="resumen-nota">El % debajo de cada círculo es la proporción de respuestas en zona positiva para ese bloque y nivel. Pasa el mouse (o toca, en celular) sobre cualquier celda para ver el desglose completo de las 4 opciones sin cambiar ningún filtro.</div>
+    <div class="resumen-nota">El % debajo de cada círculo es la proporción de respuestas en zona positiva para ese bloque y nivel.</div>
   </div>
   `;
 
@@ -614,9 +613,10 @@ function render() {
         const desgloseNivel = NIVELES
           .map(niv => ({ label: niv.label, c: filasOpcion.filter(r => (r['Nivel de puesto']||'').toString().trim().toLowerCase() === niv.key).length }))
           .filter(x => x.c > 0)
-          .map(x => `${x.label}: ${x.c}`)
-          .join(' · ');
-        const tituloBarra = `${op}\n${count} personas${desgloseNivel ? ' — ' + desgloseNivel : ''}`;
+          .sort((a, b) => b.c - a.c)
+          .map(x => `${x.c} ${x.label}`)
+          .join('\n');
+        const tituloBarra = desgloseNivel || 'Sin respuestas';
 
         html += `
         <div class="barra-col" title="${escapeHtml(tituloBarra)}">
