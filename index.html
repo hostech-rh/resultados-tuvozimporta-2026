@@ -279,6 +279,68 @@ function calcularMatrizNivelBloque(respuestas) {
   return filas;
 }
 
+// Igual que calcularResumenBloques, pero pregunta por pregunta (para detectar la mejor y la peor específica)
+function calcularResumenPreguntas(respuestas) {
+  return PREGUNTAS.map(p => {
+    const indices = respuestas
+      .map(r => r[p.col])
+      .filter(v => v && v.toString().trim() !== '')
+      .map(v => p.opciones.indexOf(v))
+      .filter(i => i !== -1);
+    const n = indices.length;
+    if (n === 0) return { col: p.col, texto: p.texto, bloque: p.bloque, n: 0 };
+    const pctPositivo = Math.round(indices.filter(i => i <= 1).length / n * 100);
+    const pctAlerta = Math.round(indices.filter(i => i === 3).length / n * 100);
+    return { col: p.col, texto: p.texto, bloque: p.bloque, n, pctPositivo, pctAlerta };
+  });
+}
+
+// Junta todo lo anterior en un resumen narrativo, considerando todos los datos disponibles
+function generarResumenAnalisis(respuestas) {
+  const total = respuestas.length;
+  if (total === 0) return ['Todavía no hay respuestas suficientes para generar un análisis.'];
+
+  const meta = getMeta();
+  const pct = Math.round(total / meta * 100);
+  const bloques = calcularResumenBloques(respuestas).filter(b => b.n > 0);
+  const preguntas = calcularResumenPreguntas(respuestas).filter(p => p.n > 0);
+  const matriz = calcularMatrizNivelBloque(respuestas).filter(f => f.totalRespuestas > 0);
+  const abiertas = respuestas.map(r => r['Respuesta abierta']).filter(t => t && t.toString().trim() !== '');
+  const temas = analizarTendencias(abiertas);
+
+  const parrafos = [];
+  parrafos.push(`Hasta ahora se han recibido <strong>${total} respuestas</strong> (${pct}% de avance sobre ${meta} colaboradores).`);
+
+  const bloquesOrdenados = [...bloques].sort((a, b) => b.pctPositivo - a.pctPositivo);
+  const mejorBloque = bloquesOrdenados[0];
+  const peorBloque = bloquesOrdenados[bloquesOrdenados.length - 1];
+  if (mejorBloque && peorBloque && mejorBloque.nombre !== peorBloque.nombre) {
+    parrafos.push(`El bloque que viene mejor es <strong>${mejorBloque.nombre}</strong> (${mejorBloque.pctPositivo}% en zona positiva), mientras que <strong>${peorBloque.nombre}</strong> es el que más atención requiere (${peorBloque.pctPositivo}% en zona positiva${peorBloque.pctAlerta > 0 ? `, ${peorBloque.pctAlerta}% en alerta` : ''}).`);
+  }
+
+  const preguntasOrdenadas = [...preguntas].sort((a, b) => b.pctPositivo - a.pctPositivo);
+  const mejorPregunta = preguntasOrdenadas[0];
+  const peorPregunta = preguntasOrdenadas[preguntasOrdenadas.length - 1];
+  if (mejorPregunta && peorPregunta && mejorPregunta.col !== peorPregunta.col) {
+    parrafos.push(`A nivel de pregunta específica, la mejor percepción se da en "${mejorPregunta.texto}" (${mejorPregunta.pctPositivo}% positivo), y la que necesita más foco es "${peorPregunta.texto}" (${peorPregunta.pctPositivo}% positivo).`);
+  }
+
+  if (matriz.length) {
+    const nivelPeor = matriz[0];
+    if (nivelPeor.rojos > 0 || nivelPeor.amarillos > 0) {
+      parrafos.push(`Por nivel de puesto, <strong>${nivelPeor.nivel}</strong> es el que muestra más señales de atención (${nivelPeor.rojos} bloque${nivelPeor.rojos===1?'':'s'} en alerta, ${nivelPeor.amarillos} en amarillo).`);
+    } else {
+      parrafos.push(`Por nivel de puesto, no se observan focos de alerta particulares por ahora.`);
+    }
+  }
+
+  if (temas.length > 0) {
+    parrafos.push(`En las respuestas abiertas, los temas que más se repiten son: ${temas.slice(0, 5).map(([w]) => `<strong>${w}</strong>`).join(', ')}.`);
+  }
+
+  return parrafos;
+}
+
 let RESPUESTAS = [];
 let MODO_EJEMPLO = false;
 
@@ -469,6 +531,16 @@ function render() {
       </table>
     </div>
     <div class="resumen-nota">Pasa el mouse sobre cada círculo para ver el detalle. Un nivel con varios círculos rojos o amarillos es donde conviene enfocar primero las acciones de este mes.</div>
+  </div>
+  `;
+
+  // ---- Resumen de análisis (narrativo, con todos los datos) ----
+  const parrafosAnalisis = generarResumenAnalisis(RESPUESTAS);
+  html += `
+  <div class="card">
+    <div class="card-tag"><span class="dot"></span>Resumen de análisis</div>
+    <h2 style="margin-bottom:14px;">Lectura general de este mes</h2>
+    ${parrafosAnalisis.map(p => `<p style="font-size:13.5px; color:var(--ink-mid); line-height:1.65; margin-bottom:10px;">${p}</p>`).join('')}
   </div>
   `;
 
