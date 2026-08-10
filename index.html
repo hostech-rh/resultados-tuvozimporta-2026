@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tu voz importa — Panel de seguimiento — HOSTECH</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --main:#4563FF; --main-l:#E8ECFF; --main-xl:#F3F5FF;
+    --pink:#D01C77; --pink-l:#FCE6F1;
+    --cream:#F6F5EC; --ink:#1C1C1A; --ink-mid:#4A4A47;
+    --ink-muted:#888780; --border:#E0DFD6; --white:#FFFFFF;
+    --good:#3FA66B; --mid:#E0A62B; --bad:#D64545;
+    --radius:14px; --radius-sm:8px;
+  }
+  body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--ink); min-height:100vh; }
+
+  /* ---------- Candado ---------- */
+  #gate { position:fixed; inset:0; background:var(--cream); display:flex; align-items:center; justify-content:center; z-index:100; padding:20px; }
+  .gate-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:36px 32px; max-width:340px; width:100%; text-align:center; }
+  .gate-card .brand-logo { width:40px; height:40px; border-radius:10px; background:var(--main); display:flex; align-items:center; justify-content:center; font-family:'DM Serif Display',serif; font-size:19px; color:var(--white); margin:0 auto 16px; }
+  .gate-card h1 { font-family:'DM Serif Display',serif; font-size:20px; margin-bottom:8px; }
+  .gate-card p { font-size:13px; color:var(--ink-mid); margin-bottom:20px; line-height:1.5; }
+  .gate-card input { width:100%; border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px; font-size:14px; font-family:inherit; margin-bottom:12px; }
+  .gate-card input:focus { outline:none; border-color:var(--main); }
+  .gate-card button { width:100%; border:none; border-radius:var(--radius-sm); padding:12px 14px; font-size:14px; font-weight:600; font-family:inherit; background:var(--main); color:var(--white); cursor:pointer; }
+  .gate-card button:hover { opacity:0.92; }
+  .gate-error { font-size:12px; color:var(--bad); margin-top:10px; display:none; }
+
+  /* ---------- Layout general ---------- */
+  #app { display:none; }
+  .site-header { background:var(--white); border-bottom:1px solid var(--border); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10; flex-wrap:wrap; gap:10px; }
+  .brand { display:flex; align-items:center; gap:10px; }
+  .brand-logo { width:32px; height:32px; border-radius:8px; background:var(--main); display:flex; align-items:center; justify-content:center; font-family:'DM Serif Display',serif; font-size:15px; color:var(--white); }
+  .brand-name { font-size:13px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; }
+  .brand-dept { font-size:12px; color:var(--ink-muted); }
+  .header-right { display:flex; align-items:center; gap:12px; }
+  .last-update { font-size:11px; color:var(--ink-muted); }
+  .btn-refresh { border:1.5px solid var(--border); background:var(--white); border-radius:20px; padding:7px 14px; font-size:12px; font-weight:500; cursor:pointer; font-family:inherit; color:var(--ink); }
+  .btn-refresh:hover { border-color:var(--main); color:var(--main); }
+
+  .main { max-width:900px; margin:0 auto; padding:28px 20px 64px; }
+  .page-title { font-family:'DM Serif Display',serif; font-size:clamp(24px,4vw,30px); margin-bottom:6px; }
+  .page-sub { font-size:13px; color:var(--ink-mid); margin-bottom:28px; }
+
+  .card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:24px; margin-bottom:18px; }
+  .card-tag { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; color:var(--main); margin-bottom:14px; }
+  .card-tag .dot { width:6px; height:6px; border-radius:50%; background:var(--main); }
+  .card h2 { font-family:'DM Serif Display',serif; font-size:18px; margin-bottom:4px; }
+
+  /* ---------- Participación ---------- */
+  .participacion-grid { display:grid; grid-template-columns: 1.2fr 1fr; gap:16px; }
+  @media (max-width:640px) { .participacion-grid { grid-template-columns: 1fr; } }
+  .big-number { font-family:'DM Serif Display',serif; font-size:44px; color:var(--main); line-height:1; margin:6px 0 4px; }
+  .big-number small { font-family:'DM Sans',sans-serif; font-size:16px; color:var(--ink-muted); font-weight:400; }
+  .progress-bar-wrap { background:var(--border); border-radius:10px; height:10px; margin:14px 0 6px; overflow:hidden; }
+  .progress-bar-fill { height:100%; border-radius:10px; background:var(--main); transition:width 0.5s ease; }
+  .progress-label { font-size:12px; color:var(--ink-mid); }
+
+  .nivel-row { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .nivel-row:last-child { margin-bottom:0; }
+  .nivel-name { font-size:12.5px; width:150px; flex-shrink:0; color:var(--ink-mid); }
+  .nivel-bar-wrap { flex:1; background:var(--main-xl); border-radius:8px; height:18px; overflow:hidden; }
+  .nivel-bar-fill { height:100%; background:var(--main); border-radius:8px; transition:width 0.5s ease; }
+  .nivel-count { font-size:12.5px; font-weight:600; width:60px; text-align:right; flex-shrink:0; }
+
+  /* ---------- Filtro ---------- */
+  .filtro-wrap { display:flex; align-items:center; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+  .filtro-wrap label { font-size:13px; color:var(--ink-mid); }
+  .filtro-wrap select { font-family:inherit; font-size:13px; padding:8px 12px; border:1.5px solid var(--border); border-radius:var(--radius-sm); background:var(--white); color:var(--ink); }
+
+  /* ---------- Resumen ejecutivo por bloque ---------- */
+  .resumen-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; }
+  @media (max-width:640px) { .resumen-grid { grid-template-columns: repeat(2, 1fr); } }
+  .resumen-card { border:1.5px solid var(--border); border-left:5px solid var(--ink-muted); border-radius:var(--radius-sm); padding:14px 14px; background:var(--white); }
+  .resumen-card.verde { border-left-color:var(--good); }
+  .resumen-card.amarillo { border-left-color:var(--mid); }
+  .resumen-card.rojo { border-left-color:var(--bad); }
+  .resumen-nombre { font-size:12.5px; font-weight:600; margin-bottom:6px; }
+  .resumen-badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; margin-bottom:8px; }
+  .resumen-badge .dot-lg { width:9px; height:9px; border-radius:50%; }
+  .resumen-badge.verde { color:var(--good); } .resumen-badge.verde .dot-lg { background:var(--good); }
+  .resumen-badge.amarillo { color:var(--mid); } .resumen-badge.amarillo .dot-lg { background:var(--mid); }
+  .resumen-badge.rojo { color:var(--bad); } .resumen-badge.rojo .dot-lg { background:var(--bad); }
+  .resumen-detalle { font-size:11.5px; color:var(--ink-mid); line-height:1.5; }
+  .resumen-nota { font-size:11.5px; color:var(--ink-muted); margin-top:14px; font-style:italic; }
+
+  /* ---------- Matriz Nivel x Bloque ---------- */
+  .foco-banner { background:var(--pink-l); border:1px solid #E9AFCB; border-radius:var(--radius-sm); padding:12px 16px; font-size:13px; color:var(--ink); line-height:1.55; margin-bottom:18px; }
+  .foco-banner strong { color:var(--pink); }
+  .tabla-matriz-wrap { overflow-x:auto; }
+  .tabla-matriz { width:100%; border-collapse:collapse; font-size:11.5px; min-width:560px; }
+  .tabla-matriz th, .tabla-matriz td { padding:9px 6px; text-align:center; border-bottom:1px solid var(--border); }
+  .tabla-matriz th { font-weight:600; color:var(--ink-mid); font-size:10.5px; }
+  .tabla-matriz td:first-child, .tabla-matriz th:first-child { text-align:left; font-weight:500; padding-left:2px; min-width:130px; }
+  .matriz-dot { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; font-size:10px; color:var(--white); font-weight:700; }
+  .matriz-dot.verde { background:var(--good); }
+  .matriz-dot.amarillo { background:var(--mid); }
+  .matriz-dot.rojo { background:var(--bad); }
+  .matriz-dot.gris { background:var(--border); color:var(--ink-muted); }
+
+  /* ---------- Preguntas (barras verticales) ---------- */
+  .pregunta-header { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:4px; }
+  .pregunta-bloque { font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--pink); font-weight:600; }
+  .pregunta-n { font-size:11px; color:var(--ink-muted); }
+  .pregunta-txt { font-size:14.5px; font-weight:500; margin-bottom:18px; line-height:1.4; }
+  .sin-datos { font-size:12.5px; color:var(--ink-muted); font-style:italic; }
+
+  .barras-vert { display:flex; align-items:flex-end; gap:16px; height:150px; margin-bottom:18px; padding:0 4px; }
+  .barra-col { display:flex; flex-direction:column; align-items:center; justify-content:flex-end; flex:1; height:100%; }
+  .barra-pct { font-size:12.5px; font-weight:700; margin-bottom:6px; }
+  .barra-cuenta { font-size:10.5px; color:var(--ink-muted); margin-bottom:6px; }
+  .barra-vert-fill { width:100%; max-width:52px; border-radius:6px 6px 3px 3px; transition:height 0.5s ease; min-height:2px; }
+  .barra-op-label { font-size:11.5px; font-weight:600; color:var(--ink-mid); margin-top:8px; }
+
+  .leyenda-opciones { display:flex; flex-direction:column; gap:7px; border-top:1px solid var(--border); padding-top:14px; }
+  .leyenda-item { display:flex; gap:9px; align-items:flex-start; font-size:12px; color:var(--ink-mid); line-height:1.4; }
+  .leyenda-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; margin-top:3px; }
+  .leyenda-item b { color:var(--ink); font-weight:600; }
+
+  /* ---------- Meta editable ---------- */
+  .meta-edit-btn { border:none; background:none; cursor:pointer; color:var(--ink-muted); font-size:13px; margin-left:6px; }
+  .meta-edit-btn:hover { color:var(--main); }
+
+  /* ---------- Tendencias en abiertas ---------- */
+  .temas-wrap { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+  .tema-pill { background:var(--main-xl); border:1px solid var(--main-l); color:var(--main); font-size:12px; font-weight:600; padding:6px 13px; border-radius:20px; }
+  .tema-pill span { font-weight:400; color:var(--ink-mid); margin-left:4px; }
+  .btn-toggle-abiertas { border:1.5px solid var(--border); background:var(--white); border-radius:20px; padding:8px 16px; font-size:12.5px; font-weight:500; cursor:pointer; font-family:inherit; color:var(--ink); margin-top:6px; }
+  .btn-toggle-abiertas:hover { border-color:var(--main); color:var(--main); }
+  #lista-abiertas { display:none; margin-top:16px; }
+
+  /* ---------- Abiertas ---------- */
+  .abierta-item { border-bottom:1px solid var(--border); padding:12px 0; }
+  .abierta-item:last-child { border-bottom:none; }
+  .abierta-nivel { font-size:10.5px; text-transform:uppercase; color:var(--ink-muted); letter-spacing:0.04em; margin-bottom:4px; }
+  .abierta-txt { font-size:13.5px; line-height:1.55; }
+
+  .privacy-note { background:var(--cream); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 16px; font-size:11.5px; color:var(--ink-mid); line-height:1.6; margin-top:20px; }
+
+  .error-box { background:#FCEBEA; border:1px solid #F0B8B4; border-radius:var(--radius-sm); padding:14px 16px; font-size:13px; color:#8A2E2E; }
+  .loading { text-align:center; padding:40px 0; color:var(--ink-muted); font-size:13px; }
+</style>
+</head>
+<body>
+
+<!-- ============ CANDADO ============ -->
+<div id="gate">
+  <div class="gate-card">
+    <div class="brand-logo">H</div>
+    <h1>Tu voz importa</h1>
+    <p>Panel de seguimiento — acceso restringido a Recursos Humanos y Dirección General.</p>
+    <input type="password" id="gate-input" placeholder="Contraseña" autocomplete="off">
+    <button onclick="checkPassword()">Entrar</button>
+    <p class="gate-error" id="gate-error">Contraseña incorrecta, inténtalo de nuevo.</p>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+  <div class="site-header">
+    <div class="brand">
+      <div class="brand-logo">H</div>
+      <div>
+        <div class="brand-name">Tu voz importa</div>
+        <div class="brand-dept">Panel de seguimiento · Agosto 2026 · Orgullo</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="last-update" id="last-update">—</span>
+      <button class="btn-refresh" onclick="cargarDatos()">↻ Actualizar</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div id="content-area">
+      <div class="loading">Cargando datos…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// CONFIGURACIÓN — edita aquí si algo cambia
+// ─────────────────────────────────────────────
+const DASHBOARD_PASSWORD = 'hostech-rh-2026';   // contraseña para ver el panel — cámbiala cuando quieras
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNHeokK808clIxbqB1Li6qi9MrgInZM9qf_-gdMOmJ3UxB-OsMKtAFlr0sWXvk6jHR/exec';
+const CLAVE_SECRETA = 'hostech-pulso-2026';     // debe coincidir con la del Apps Script
+const META_RESPUESTAS_DEFAULT = 110;             // total de colaboradores en HOSTECH (valor inicial)
+
+function getMeta() {
+  const guardada = localStorage.getItem('tvi_meta_respuestas');
+  return guardada ? parseInt(guardada, 10) : META_RESPUESTAS_DEFAULT;
+}
+function editarMeta() {
+  const actual = getMeta();
+  const nueva = prompt('¿Cuántos colaboradores tiene HOSTECH en total ahora?', actual);
+  if (nueva === null) return;
+  const num = parseInt(nueva, 10);
+  if (!isNaN(num) && num > 0) {
+    localStorage.setItem('tvi_meta_respuestas', num);
+    render();
+  } else {
+    alert('Escribe solo un número mayor a 0.');
+  }
+}
+
+const NIVELES = [
+  { key: 'directivo',    label: 'Directivo / Gerencia' },
+  { key: 'mando-medio',  label: 'Mando medio' },
+  { key: 'operativo',    label: 'Operativo / Colaborador' },
+  { key: 'prefiero-no',  label: 'Prefiero no indicarlo' },
+];
+
+const PREGUNTAS = [
+  { col:'P1',  bloque:'Orgullo', texto:'¿Te sientes orgulloso/a de trabajar en esta empresa?', opciones:['Sí, me da gusto decir dónde trabajo','En general sí, aunque hay cosas que me gustaría que fueran diferentes','Tengo sentimientos encontrados al respecto','No, no me siento orgulloso/a de trabajar aquí'] },
+  { col:'P2',  bloque:'Orgullo', texto:'¿Con qué frecuencia sientes que el trabajo que haces vale la pena?', opciones:['Frecuentemente, encuentro sentido en lo que hago','A veces, hay momentos en que lo siento y otros en que no','Rara vez, me cuesta encontrar significado en mi trabajo','No, siento que lo que hago no tiene mucho sentido'] },
+  { col:'P3',  bloque:'Orgullo', texto:'¿Te sientes orgulloso/a del equipo con el que trabajas?', opciones:['Sí, tengo un gran equipo y me da gusto trabajar con ellos','En general sí, aunque hay cosas que podrían mejorar','Es variable, hay personas que admiro y otras que me generan dudas','No, no me siento orgulloso/a de cómo funciona mi equipo'] },
+  { col:'P4',  bloque:'Orgullo', texto:'¿La empresa actúa de acuerdo con los valores que dice tener?', opciones:['Sí, veo coherencia entre lo que se dice y lo que se hace','A veces, aunque hay brechas entre el discurso y la realidad','Hay poca coherencia, los valores se quedan más en papel','No, lo que se dice no tiene nada que ver con lo que se vive'] },
+  { col:'P5',  bloque:'Orgullo', texto:'Si un amigo o familiar te preguntara si trabajar aquí es buena opción, ¿qué le dirías?', opciones:['Se lo recomendaría sin dudarlo','Se lo recomendaría con algunas reservas','Le diría que lo pensara bien antes de decidir','No se lo recomendaría'] },
+  { col:'P6',  bloque:'Carga y bienestar', texto:'¿Cómo describirías tu carga de trabajo este mes?', opciones:['Manejable, pude hacer mi trabajo bien sin sentirme sobrepasado/a','Algo cargado, pero lo pude sostener','Muy exigente, hubo momentos en que sentí que no alcanzaba','Insostenible, me sentí desbordado/a'] },
+  { col:'P7',  bloque:'Compañerismo', texto:'¿Sientes que perteneces a un equipo en el que te puedes apoyar?', opciones:['Sí, hay un equipo real y me siento parte de él','En general sí, aunque no siempre siento ese respaldo','A veces, depende de la situación o de con quién','No, siento que cada quien va por su lado'] },
+  { col:'P8',  bloque:'Comunicación y confianza', texto:'¿Recibes a tiempo la información que necesitas para hacer bien tu trabajo?', opciones:['Sí, la información llega cuando la necesito','A veces, aunque hay momentos en que me entero tarde','Con frecuencia tengo que buscar la información por mi cuenta','No, la falta de información me dificulta hacer mi trabajo'] },
+  { col:'P9',  bloque:'Reconocimiento y propósito', texto:'¿Con qué frecuencia sientes que tu trabajo es reconocido o valorado?', opciones:['Frecuentemente, siento que mi esfuerzo se nota y se reconoce','A veces, aunque no de forma consistente','Rara vez, el reconocimiento es la excepción','No, siento que mi trabajo pasa desapercibido'] },
+  { col:'P10', bloque:'Liderazgo y dirección', texto:'¿Tu líder directo te da la claridad que necesitas para hacer bien tu trabajo?', opciones:['Sí, siempre sé lo que se espera de mí','La mayoría de las veces tengo claridad, aunque a veces me quedo con dudas','Me cuesta entender qué se espera de mí con frecuencia','No tengo claridad sobre lo que se espera de mí'] },
+];
+
+// Colores del más positivo al más negativo
+const COLORES_OPCION = ['#3FA66B', '#8FBF6B', '#E0A62B', '#D64545'];
+
+const BLOQUES = [
+  { nombre: 'Orgullo', cols: ['P1','P2','P3','P4','P5'] },
+  { nombre: 'Carga y bienestar', cols: ['P6'] },
+  { nombre: 'Compañerismo', cols: ['P7'] },
+  { nombre: 'Comunicación y confianza', cols: ['P8'] },
+  { nombre: 'Reconocimiento y propósito', cols: ['P9'] },
+  { nombre: 'Liderazgo y dirección', cols: ['P10'] },
+];
+
+// Para cada bloque, calcula qué tan positivas o negativas vienen las respuestas.
+// Opción 1-2 (índice 0-1) = zona positiva · Opción 4 (índice 3) = zona de alerta
+function calcularResumenBloques(respuestas) {
+  return BLOQUES.map(b => {
+    const indices = [];
+    b.cols.forEach(col => {
+      const preg = PREGUNTAS.find(p => p.col === col);
+      respuestas.forEach(r => {
+        const val = r[col];
+        if (val) {
+          const idx = preg.opciones.indexOf(val);
+          if (idx !== -1) indices.push(idx);
+        }
+      });
+    });
+    const n = indices.length;
+    if (n === 0) return { nombre: b.nombre, n: 0 };
+    const avg = indices.reduce((a, x) => a + x, 0) / n;
+    const pctPositivo = Math.round(indices.filter(i => i <= 1).length / n * 100);
+    const pctAlerta = Math.round(indices.filter(i => i === 3).length / n * 100);
+    const color = avg <= 1 ? 'verde' : avg <= 2 ? 'amarillo' : 'rojo';
+    return { nombre: b.nombre, n, pctPositivo, pctAlerta, color };
+  });
+}
+
+// Cruza nivel de puesto con cada bloque, para ver en qué nivel hay que poner foco
+function calcularMatrizNivelBloque(respuestas) {
+  const filas = NIVELES.map(nivel => {
+    const respuestasNivel = respuestas.filter(r => (r['Nivel de puesto']||'').toString().trim().toLowerCase() === nivel.key);
+    const bloques = calcularResumenBloques(respuestasNivel);
+    const rojos = bloques.filter(b => b.color === 'rojo').length;
+    const amarillos = bloques.filter(b => b.color === 'amarillo').length;
+    const totalRespuestas = respuestasNivel.length;
+    return { nivel: nivel.label, bloques, rojos, amarillos, totalRespuestas };
+  });
+  // Ordena: primero los niveles con más bloques en rojo, luego los con más en amarillo
+  filas.sort((a, b) => (b.rojos - a.rojos) || (b.amarillos - a.amarillos));
+  return filas;
+}
+
+let RESPUESTAS = [];
+let MODO_EJEMPLO = false;
+
+// Datos ficticios solo para poder ver el diseño cuando no hay conexión real
+function generarDatosEjemplo() {
+  const niveles = ['directivo','mando-medio','operativo','operativo','prefiero-no'];
+  const abiertas = [
+    'Sería bueno tener más reconocimiento cuando se cumplen las metas del mes.',
+    'Me gustaría que hubiera más comunicación entre áreas, a veces la información llega tarde.',
+    'El reconocimiento del equipo directivo hace mucha diferencia en el día a día.',
+    'Falta comunicación clara sobre los proyectos nuevos que se están armando.',
+    'Siento que hace falta más reconocimiento al trabajo del equipo operativo.',
+    ''
+  ];
+  const datos = [];
+  for (let i = 0; i < 47; i++) {
+    const fila = { 'Nivel de puesto': niveles[i % niveles.length] };
+    PREGUNTAS.forEach(p => {
+      const idx = Math.floor(Math.random() * 4);
+      fila[p.col] = p.opciones[idx];
+    });
+    fila['Respuesta abierta'] = i % 6 === 0 ? abiertas[i % abiertas.length] : '';
+    datos.push(fila);
+  }
+  return datos;
+}
+
+// ─────────────────────────────────────────────
+// CANDADO
+// ─────────────────────────────────────────────
+function checkPassword() {
+  const val = document.getElementById('gate-input').value;
+  if (val === DASHBOARD_PASSWORD) {
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    cargarDatos();
+  } else {
+    document.getElementById('gate-error').style.display = 'block';
+  }
+}
+document.getElementById('gate-input').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') checkPassword();
+});
+
+// ─────────────────────────────────────────────
+// CARGA DE DATOS
+// ─────────────────────────────────────────────
+async function cargarDatos() {
+  const content = document.getElementById('content-area');
+  content.innerHTML = '<div class="loading">Cargando datos…</div>';
+  try {
+    const res = await fetch(APPS_SCRIPT_URL + '?key=' + encodeURIComponent(CLAVE_SECRETA));
+    const data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message || 'Error desconocido');
+    RESPUESTAS = data.respuestas || [];
+    MODO_EJEMPLO = false;
+    document.getElementById('last-update').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
+    render();
+  } catch (err) {
+    MODO_EJEMPLO = true;
+    RESPUESTAS = generarDatosEjemplo();
+    document.getElementById('last-update').textContent = 'Sin conexión — mostrando ejemplo';
+    render();
+  }
+}
+
+// ─────────────────────────────────────────────
+// RENDER PRINCIPAL
+// ─────────────────────────────────────────────
+let filtroActual = 'todos';
+
+function render() {
+  const content = document.getElementById('content-area');
+  const total = RESPUESTAS.length;
+  const META_RESPUESTAS = getMeta();
+  const pct = Math.min(100, Math.round((total / META_RESPUESTAS) * 100));
+
+  // Conteo por nivel
+  const conteoNivel = {};
+  NIVELES.forEach(n => conteoNivel[n.key] = 0);
+  let otros = 0;
+  RESPUESTAS.forEach(r => {
+    const nivel = (r['Nivel de puesto'] || '').toString().trim().toLowerCase();
+    if (conteoNivel.hasOwnProperty(nivel)) conteoNivel[nivel]++;
+    else otros++;
+  });
+  const maxNivel = Math.max(1, ...Object.values(conteoNivel));
+
+  let html = '';
+
+  if (MODO_EJEMPLO) {
+    html += `<div class="error-box" style="margin-bottom:18px;">⚠ Estás viendo <strong>datos de ejemplo (ficticios)</strong>, solo para revisar el diseño. Aún no está conectado a tu Google Sheet real.</div>`;
+  }
+
+  // ---- Participación ----
+  html += `
+  <div class="page-title">Panel de seguimiento</div>
+  <div class="page-sub">Pulso de Agosto · Bloque Orgullo</div>
+
+  <div class="card">
+    <div class="card-tag"><span class="dot"></span>Participación</div>
+    <div class="participacion-grid">
+      <div>
+        <h2>Respuestas recibidas</h2>
+        <div class="big-number">${total} <small>/ ${META_RESPUESTAS}</small><button class="meta-edit-btn" onclick="editarMeta()" title="Editar meta de colaboradores">✎</button></div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+        <div class="progress-label"><strong>${pct}%</strong> de avance sobre ${META_RESPUESTAS} colaboradores</div>
+      </div>
+      <div>
+        ${NIVELES.map(n => `
+          <div class="nivel-row">
+            <div class="nivel-name">${n.label}</div>
+            <div class="nivel-bar-wrap"><div class="nivel-bar-fill" style="width:${(conteoNivel[n.key]/maxNivel*100)}%"></div></div>
+            <div class="nivel-count">${conteoNivel[n.key]}</div>
+          </div>
+        `).join('')}
+        ${otros > 0 ? `<div class="nivel-row"><div class="nivel-name">Sin clasificar</div><div class="nivel-bar-wrap"><div class="nivel-bar-fill" style="width:${(otros/maxNivel*100)}%; background:var(--ink-muted)"></div></div><div class="nivel-count">${otros}</div></div>` : ''}
+      </div>
+    </div>
+  </div>
+  `;
+
+  // ---- Filtro por nivel (se calcula aquí para usarlo en resumen y en preguntas) ----
+  const respuestasFiltradas = filtroActual === 'todos'
+    ? RESPUESTAS
+    : RESPUESTAS.filter(r => (r['Nivel de puesto']||'').toString().trim().toLowerCase() === filtroActual);
+
+  // ---- Resumen ejecutivo por bloque ----
+  const resumenBloques = calcularResumenBloques(respuestasFiltradas);
+  const etiquetaColor = { verde: '🟢 Bien', amarillo: '🟡 Atención', rojo: '🔴 Alerta' };
+
+  html += `
+  <div class="card">
+    <div class="card-tag"><span class="dot"></span>Resumen ejecutivo</div>
+    <h2 style="margin-bottom:14px;">¿Cómo viene cada bloque?</h2>
+    <div class="resumen-grid">
+      ${resumenBloques.map(b => {
+        if (b.n === 0) {
+          return `<div class="resumen-card"><div class="resumen-nombre">${b.nombre}</div><div class="resumen-detalle sin-datos">Sin datos aún</div></div>`;
+        }
+        return `
+        <div class="resumen-card ${b.color}">
+          <div class="resumen-nombre">${b.nombre}</div>
+          <div class="resumen-badge ${b.color}"><span class="dot-lg"></span>${etiquetaColor[b.color]}</div>
+          <div class="resumen-detalle">${b.pctPositivo}% en zona positiva${b.pctAlerta > 0 ? ` · ${b.pctAlerta}% en alerta` : ''}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="resumen-nota">Este semáforo refleja el estado de este mes. Cuando tengas más meses de datos, aquí también vas a poder ver si cada bloque va mejorando o empeorando mes a mes.</div>
+  </div>
+  `;
+
+  // ---- Resumen ejecutivo: foco por nivel de puesto ----
+  const matrizNivel = calcularMatrizNivelBloque(RESPUESTAS);
+  const filasConDatos = matrizNivel.filter(f => f.totalRespuestas > 0);
+  const nivelFoco = filasConDatos.find(f => f.rojos > 0 || f.amarillos > 0);
+
+  html += `
+  <div class="card">
+    <div class="card-tag"><span class="dot"></span>Resumen ejecutivo</div>
+    <h2 style="margin-bottom:14px;">¿En qué nivel hay que poner foco?</h2>
+    ${nivelFoco ? `
+      <div class="foco-banner">
+        📍 <strong>Foco sugerido: ${nivelFoco.nivel}</strong> — es el nivel con más bloques en zona de atención
+        (${nivelFoco.rojos} en alerta roja, ${nivelFoco.amarillos} en amarilla).
+        Los bloques a revisar primero son: <strong>${nivelFoco.bloques.filter(b => b.color==='rojo' || b.color==='amarillo').map(b => b.nombre).join(', ')}</strong>.
+      </div>
+    ` : `<div class="foco-banner">✓ Por ahora ningún nivel muestra bloques en zona de alerta o atención.</div>`}
+    <div class="tabla-matriz-wrap">
+      <table class="tabla-matriz">
+        <thead>
+          <tr>
+            <th>Nivel de puesto</th>
+            ${BLOQUES.map(b => `<th>${b.nombre}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${matrizNivel.map(fila => `
+            <tr>
+              <td>${fila.nivel}${fila.totalRespuestas > 0 ? ` <span style="color:var(--ink-muted); font-weight:400;">(${fila.totalRespuestas})</span>` : ''}</td>
+              ${fila.bloques.map(b => {
+                if (b.n === 0) return `<td><span class="matriz-dot gris" title="Sin datos">–</span></td>`;
+                return `<td><span class="matriz-dot ${b.color}" title="${b.nombre}: ${b.pctPositivo}% en zona positiva${b.pctAlerta>0?`, ${b.pctAlerta}% en alerta`:''}"></span></td>`;
+              }).join('')}
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="resumen-nota">Pasa el mouse sobre cada círculo para ver el detalle. Un nivel con varios círculos rojos o amarillos es donde conviene enfocar primero las acciones de este mes.</div>
+  </div>
+  `;
+
+  // ---- Filtro ----
+  html += `
+  <div class="filtro-wrap">
+    <label>Ver resultados de:</label>
+    <select id="filtro-nivel" onchange="filtroActual=this.value; render();">
+      <option value="todos" ${filtroActual==='todos'?'selected':''}>Todos los niveles</option>
+      ${NIVELES.map(n => `<option value="${n.key}" ${filtroActual===n.key?'selected':''}>${n.label}</option>`).join('')}
+    </select>
+  </div>
+  `;
+
+  // ---- Preguntas ----
+  PREGUNTAS.forEach((p, idx) => {
+    const valores = respuestasFiltradas.map(r => r[p.col]).filter(v => v && v.toString().trim() !== '');
+    const n = valores.length;
+
+    html += `
+    <div class="card">
+      <div class="pregunta-header">
+        <span class="pregunta-bloque">${p.bloque}</span>
+        <span class="pregunta-n">${n} respuesta${n===1?'':'s'}</span>
+      </div>
+      <div class="pregunta-txt">${p.texto}</div>
+    `;
+
+    if (n === 0) {
+      html += `<div class="sin-datos">Aún no hay respuestas para esta pregunta con el filtro actual.</div>`;
+    } else {
+      const conteos = p.opciones.map(op => valores.filter(v => v === op).length);
+      const maxConteo = Math.max(1, ...conteos);
+
+      html += `<div class="barras-vert">`;
+      p.opciones.forEach((op, i) => {
+        const count = conteos[i];
+        const pctOp = Math.round((count / n) * 100);
+        const alturaPx = Math.max(2, Math.round((count / maxConteo) * 120));
+        html += `
+        <div class="barra-col" title="${escapeHtml(op)}">
+          <div class="barra-pct">${pctOp}%</div>
+          <div class="barra-cuenta">(${count})</div>
+          <div class="barra-vert-fill" style="height:${alturaPx}px; background:${COLORES_OPCION[i]}"></div>
+          <div class="barra-op-label">Op. ${i+1}</div>
+        </div>`;
+      });
+      html += `</div>`;
+
+      html += `<div class="leyenda-opciones">`;
+      p.opciones.forEach((op, i) => {
+        html += `<div class="leyenda-item"><span class="leyenda-dot" style="background:${COLORES_OPCION[i]}"></span><div><b>Op. ${i+1}:</b> ${escapeHtml(op)}</div></div>`;
+      });
+      html += `</div>`;
+    }
+    html += `</div>`;
+  });
+
+  // ---- Respuestas abiertas ----
+  const abiertas = respuestasFiltradas.filter(r => r['Respuesta abierta'] && r['Respuesta abierta'].toString().trim() !== '');
+  const temas = analizarTendencias(abiertas.map(r => r['Respuesta abierta']));
+
+  html += `
+  <div class="card">
+    <div class="card-tag"><span class="dot"></span>Respuestas abiertas (${abiertas.length})</div>
+    <h2 style="margin-bottom:14px;">Temas que más se repiten</h2>
+    ${temas.length === 0 ? '<div class="sin-datos">Aún no hay suficientes respuestas para detectar temas.</div>' : `
+      <div class="temas-wrap">
+        ${temas.map(([palabra, count]) => `<div class="tema-pill">${palabra}<span>× ${count}</span></div>`).join('')}
+      </div>
+      <div class="sin-datos" style="margin-bottom:6px;">Palabras que aparecen con más frecuencia en las respuestas abiertas. Es una guía rápida, no sustituye leer los comentarios completos.</div>
+    `}
+    ${abiertas.length > 0 ? `<button class="btn-toggle-abiertas" onclick="toggleAbiertas()" id="btn-toggle-abiertas">Ver las ${abiertas.length} respuestas completas</button>` : ''}
+    <div id="lista-abiertas">
+      ${abiertas.map(r => `
+        <div class="abierta-item">
+          <div class="abierta-nivel">${nivelLabel(r['Nivel de puesto'])}</div>
+          <div class="abierta-txt">${escapeHtml(r['Respuesta abierta'])}</div>
+        </div>
+      `).join('')}
+    </div>
+  </div>
+
+  <div class="privacy-note">
+    Este panel solo muestra datos agregados por nivel de puesto, nunca por área ni con datos que permitan identificar a una persona. Acceso restringido a Recursos Humanos y Dirección General.
+  </div>
+  `;
+
+  content.innerHTML = html;
+}
+
+function toggleAbiertas() {
+  const lista = document.getElementById('lista-abiertas');
+  const btn = document.getElementById('btn-toggle-abiertas');
+  const visible = lista.style.display === 'block';
+  lista.style.display = visible ? 'none' : 'block';
+  btn.textContent = visible ? btn.textContent.replace('Ocultar', 'Ver') : btn.textContent.replace('Ver las', 'Ocultar las');
+}
+
+// Extrae las palabras que más se repiten en las respuestas abiertas (excluye palabras muy comunes)
+function analizarTendencias(textos) {
+  const stopwords = new Set(['de','la','que','el','en','y','a','los','del','se','las','por','un','para','con','no','una','su','al','lo','como','más','pero','sus','le','ya','o','este','porque','esta','entre','cuando','muy','sin','sobre','también','me','hasta','hay','donde','quien','desde','todo','nos','durante','todos','uno','les','ni','contra','otros','ese','eso','ante','ellos','esto','antes','algunos','unos','otro','otras','otra','tanto','esa','estos','mucho','nada','muchos','cual','poco','estar','estas','algunas','algo','nosotros','ellas','siento','siente','sientes','creo','pienso','sería','sido','poder','puede','pueden','hace','hacer','tiene','tienen','tener','está','están','estoy','somos','son','soy','trabajo','trabajar','empresa']);
+  const freq = {};
+  textos.forEach(t => {
+    t.toString().toLowerCase().replace(/[.,;:!¿?"'()]/g, '').split(/\s+/).forEach(w => {
+      if (w.length > 3 && !stopwords.has(w)) freq[w] = (freq[w] || 0) + 1;
+    });
+  });
+  return Object.entries(freq).filter(([w, c]) => c >= 2).sort((a, b) => b[1] - a[1]).slice(0, 8);
+}
+
+function nivelLabel(key) {
+  const found = NIVELES.find(n => n.key === (key||'').toString().trim().toLowerCase());
+  return found ? found.label : 'Sin clasificar';
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>
