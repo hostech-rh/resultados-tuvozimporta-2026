@@ -100,6 +100,8 @@
   .matriz-dot.amarillo { background:var(--mid); }
   .matriz-dot.rojo { background:var(--bad); }
   .matriz-dot.gris { background:var(--border); color:var(--ink-muted); }
+  .matriz-cell-wrap { display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .matriz-pct { font-size:9.5px; color:var(--ink-muted); }
 
   /* ---------- Preguntas (barras verticales) ---------- */
   .pregunta-header { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:4px; flex-wrap:wrap; }
@@ -262,8 +264,9 @@ function calcularResumenBloques(respuestas) {
     const avg = indices.reduce((a, x) => a + x, 0) / n;
     const pctPositivo = Math.round(indices.filter(i => i <= 1).length / n * 100);
     const pctAlerta = Math.round(indices.filter(i => i === 3).length / n * 100);
+    const distribucion = [0,1,2,3].map(i => Math.round(indices.filter(idx => idx === i).length / n * 100));
     const color = avg <= 1 ? 'verde' : avg <= 2 ? 'amarillo' : 'rojo';
-    return { nombre: b.nombre, n, pctPositivo, pctAlerta, color };
+    return { nombre: b.nombre, n, pctPositivo, pctAlerta, distribucion, color };
   });
 }
 
@@ -534,15 +537,16 @@ function render() {
             <tr>
               <td>${fila.nivel}${fila.totalRespuestas > 0 ? ` <span style="color:var(--ink-muted); font-weight:400;">(${fila.totalRespuestas})</span>` : ''}</td>
               ${fila.bloques.map(b => {
-                if (b.n === 0) return `<td><span class="matriz-dot gris" title="Sin datos">–</span></td>`;
-                return `<td><span class="matriz-dot ${b.color}" title="${b.nombre}: ${b.pctPositivo}% en zona positiva${b.pctAlerta>0?`, ${b.pctAlerta}% en alerta`:''}"></span></td>`;
+                if (b.n === 0) return `<td><span class="matriz-dot gris">–</span></td>`;
+                const tituloDetalle = `${b.nombre} · ${fila.nivel} (n=${b.n})\nOp.1: ${b.distribucion[0]}% · Op.2: ${b.distribucion[1]}% · Op.3: ${b.distribucion[2]}% · Op.4: ${b.distribucion[3]}%`;
+                return `<td title="${tituloDetalle}"><div class="matriz-cell-wrap"><span class="matriz-dot ${b.color}"></span><span class="matriz-pct">${b.pctPositivo}%${b.pctAlerta>0?` · ${b.pctAlerta}% alerta`:''}</span></div></td>`;
               }).join('')}
             </tr>
           `).join('')}
         </tbody>
       </table>
     </div>
-    <div class="resumen-nota">Pasa el mouse sobre cada círculo para ver el detalle. Un nivel con varios círculos rojos o amarillos es donde conviene enfocar primero las acciones de este mes.</div>
+    <div class="resumen-nota">El % debajo de cada círculo es la proporción de respuestas en zona positiva para ese bloque y nivel. Pasa el mouse (o toca, en celular) sobre cualquier celda para ver el desglose completo de las 4 opciones sin cambiar ningún filtro.</div>
   </div>
   `;
 
@@ -604,8 +608,18 @@ function render() {
         const count = conteos[i];
         const pctOp = Math.round((count / n) * 100);
         const alturaPx = Math.max(2, Math.round((count / maxConteo) * 120));
+
+        // Desglose por nivel de puesto de quienes eligieron ESTA opción específica
+        const filasOpcion = baseParaEstaPregunta.filter(r => r[p.col] === op);
+        const desgloseNivel = NIVELES
+          .map(niv => ({ label: niv.label, c: filasOpcion.filter(r => (r['Nivel de puesto']||'').toString().trim().toLowerCase() === niv.key).length }))
+          .filter(x => x.c > 0)
+          .map(x => `${x.label}: ${x.c}`)
+          .join(' · ');
+        const tituloBarra = `${op}\n${count} personas${desgloseNivel ? ' — ' + desgloseNivel : ''}`;
+
         html += `
-        <div class="barra-col" title="${escapeHtml(op)}">
+        <div class="barra-col" title="${escapeHtml(tituloBarra)}">
           <div class="barra-pct">${pctOp}%</div>
           <div class="barra-cuenta">(${count})</div>
           <div class="barra-vert-fill" style="height:${alturaPx}px; background:${COLORES_OPCION[i]}"></div>
