@@ -56,7 +56,7 @@
   .vista-tab small { display:block; font-size:10.5px; font-weight:400; color:var(--ink-muted); margin-top:2px; }
   .vista-tab:hover { border-color:var(--main); }
   .vista-tab.active { background:var(--main); border-color:var(--main); color:var(--white); }
-  .vista-tab.active small { color:#DCE3FF; }
+  .vista-tab.active small { color:inherit; opacity:0.85; }
   .vista-tab.comparar { border-style:dashed; color:var(--main); }
   .vista-tab.comparar.active { border-style:solid; color:var(--white); }
 
@@ -193,6 +193,33 @@
   .celda-prot { font-size:10.5px; color:var(--ink-muted); font-style:italic; }
   .celda-n { display:block; font-size:10px; color:var(--ink-muted); margin-top:2px; }
 
+
+  /* ---------- Respuestas abiertas: temas, tono, alertas ---------- */
+  .tono-bar { display:flex; height:10px; border-radius:6px; overflow:hidden; background:var(--border); margin:2px 0 8px; }
+  .tono-leyenda { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:11.5px; color:var(--ink-mid); margin-bottom:6px; }
+  .tono-leyenda i { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; }
+  .tema-lista { margin-top:18px; display:flex; flex-direction:column; gap:12px; }
+  .tema-card { border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:14px 16px; }
+  .tema-top { display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
+  .tema-nombre { font-size:14px; font-weight:600; }
+  .tema-chip { display:inline-block; font-size:10px; font-weight:500; color:var(--pink); background:var(--pink-l); border-radius:20px; padding:2px 9px; margin-left:4px; letter-spacing:0.02em; }
+  .tema-n { font-size:12px; color:var(--ink-mid); }
+  .tema-sug { font-size:12px; color:var(--ink-mid); margin:2px 0 8px; }
+  .tema-ej { font-size:12.5px; color:var(--ink-mid); line-height:1.55; border-left:3px solid var(--main-l); padding:2px 0 2px 10px; margin:6px 0; font-style:italic; }
+  .tema-nota { font-size:11.5px; color:var(--ink-muted); margin-top:8px; line-height:1.5; }
+  .idea-item { font-size:13px; line-height:1.6; color:var(--ink-mid); padding:10px 0; border-bottom:1px solid var(--border); }
+  .idea-item:last-child { border-bottom:none; }
+  .alerta-card { border-color:#F0B8B4; }
+  .alerta-item { border:1.5px solid var(--border); border-left:5px solid var(--mid); border-radius:var(--radius-sm); padding:12px 14px; margin-bottom:10px; }
+  .alerta-item.alta { border-left-color:var(--bad); background:#FFFAFA; }
+  .alerta-chips { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
+  .alerta-chip { font-size:10.5px; font-weight:600; padding:2px 9px; border-radius:20px; }
+  .alerta-chip.alta { background:#FBE4E4; color:#B03434; }
+  .alerta-chip.media { background:#FFF1CF; color:#8A6410; }
+
+  .mes-chip { display:inline-flex; align-items:center; gap:6px; border:1px solid; border-radius:20px; padding:3px 11px; font-size:12px; font-weight:600; line-height:1.3; }
+  .mes-chip i { display:inline-block; width:8px; height:8px; border-radius:50%; }
+
   .privacy-note { background:var(--cream); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 16px; font-size:11.5px; color:var(--ink-mid); line-height:1.6; margin-top:20px; }
   .error-box { background:#FCEBEA; border:1px solid #F0B8B4; border-radius:var(--radius-sm); padding:14px 16px; font-size:13px; color:#8A2E2E; }
   .aviso-box { background:#FFF7E0; border:1px solid #F0D98A; border-radius:var(--radius-sm); padding:14px 16px; font-size:13px; color:#6B5410; line-height:1.55; }
@@ -250,10 +277,13 @@ const UMBRAL_MOVIMIENTO = 10;                    // puntos porcentuales para con
 // Calendario del programa. Se usa para poner nombre al bloque profundo de cada mes.
 // Cuando armes octubre, noviembre… agrega aquí su línea.
 const PROGRAMA = [
-  { mes: 'Agosto 2026',     bloque: 'Orgullo',           ciclo: 'Ciclo 1' },
-  { mes: 'Septiembre 2026', bloque: 'Carga y bienestar', ciclo: 'Ciclo 1' },
-  // { mes: 'Octubre 2026',   bloque: '…', ciclo: 'Ciclo 1' },
-];
+  { mes: 'Agosto 2026',     bloque: 'Orgullo',                    ciclo: 'Ciclo 1', color: '#C4A000', colorL: '#F5E07A', colorXl: '#FFFBE6', tinta: '#1C1C1A' },
+  { mes: 'Septiembre 2026', bloque: 'Carga y bienestar',          ciclo: 'Ciclo 1', color: '#3C3489', colorL: '#CECBF6', colorXl: '#EEEDFE' },
+  { mes: 'Octubre 2026',    bloque: 'Compañerismo',               ciclo: 'Ciclo 1', color: '#C4006A', colorL: '#F9B8D8', colorXl: '#FDEAF4' },
+  { mes: 'Noviembre 2026',  bloque: 'Comunicación y confianza',   ciclo: 'Ciclo 1', color: '#633806', colorL: '#FAC775', colorXl: '#FAEEDA' },
+  { mes: 'Diciembre 2026',  bloque: 'Reconocimiento y propósito', ciclo: 'Ciclo 1', color: '#712B13', colorL: '#F5C4B3', colorXl: '#FAECE7' },
+  { mes: 'Enero 2027',      bloque: 'Liderazgo y dirección',      ciclo: 'Ciclo 1', color: '#0C447C', colorL: '#B5D4F4', colorXl: '#E6F1FB' },
+];   // color = color de acento del mes (el mismo de su encuesta); tinta = color del texto sobre ese color (blanco si no se indica)
 
 // ─────────────────────────────────────────────
 // BANCO DE PREGUNTAS (48 preguntas, tomado de banco_preguntas_hostech.xlsx)
@@ -359,6 +389,25 @@ function procesarFila(r) {
   };
 }
 
+const COLOR_DEFECTO = { main: '#4563FF', l: '#C5CCFF', xl: '#E8ECFF', tinta: '#FFFFFF' };
+function colorDe(prog) {
+  return prog && prog.color ? { main: prog.color, l: prog.colorL, xl: prog.colorXl, tinta: prog.tinta || '#FFFFFF' } : COLOR_DEFECTO;
+}
+function oscurecer(hex, f) {
+  const n = parseInt(hex.slice(1), 16);
+  return '#' + [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(x => Math.round(x * (1 - f)).toString(16).padStart(2, '0')).join('');
+}
+// Etiqueta con el color del mes (texto oscuro para que se lea bien también con el amarillo)
+function chipMes(p, txt) {
+  const c = p.col;
+  return `<span class="mes-chip" style="background:${c.xl}; border-color:${c.l}; color:${oscurecer(c.main, 0.4)};"><i style="background:${c.main}"></i>${escapeHtml(txt || p.label.split(' ')[0])}</span>`;
+}
+// Encabezado de tabla con el color del mes
+function thMes(p, sub) {
+  const c = p.col;
+  return `<th style="background:${c.xl}; border-bottom:3px solid ${c.main}; color:${oscurecer(c.main, 0.4)};">${escapeHtml(p.label.split(' ')[0])}${sub ? `<span class="th-sub">${sub}</span>` : ''}</th>`;
+}
+
 function moda(arr) {
   const c = {};
   arr.filter(Boolean).forEach(x => { c[x] = (c[x] || 0) + 1; });
@@ -392,6 +441,7 @@ function construirPulsos(respuestas) {
     const prog = PROGRAMA.find(x => { const i = parseMes(x.mes); return i && i.orden === p.orden; });
     p.bloque = moda(p.filas.map(f => f.bloque)) || (prog ? prog.bloque : null);
     p.ciclo = moda(p.filas.map(f => f.ciclo)) || (prog ? prog.ciclo : '');
+    p.col = colorDe(prog);
     const qids = new Set();
     p.filas.forEach(f => Object.keys(f.resp).forEach(q => qids.add(q)));
     p.qids = CATALOGO.map(q => q.id).filter(id => qids.has(id));
@@ -457,24 +507,339 @@ function pulsoPrevioCon(p, qid) {
   return null;
 }
 
-// ─────────────────────────────────────────────
-// TEXTOS: temas de respuestas abiertas
-// ─────────────────────────────────────────────
-function analizarTendencias(textos) {
-  const stopwords = new Set(['de','la','que','el','en','y','a','los','del','se','las','por','un','para','con','no','una','su','al','lo','como','más','pero','sus','le','ya','o','este','porque','esta','entre','cuando','muy','sin','sobre','también','me','hasta','hay','donde','quien','desde','todo','nos','durante','todos','uno','les','ni','contra','otros','ese','eso','ante','ellos','esto','antes','algunos','unos','otro','otras','otra','tanto','esa','estos','mucho','nada','muchos','cual','poco','estar','estas','algunas','algo','nosotros','ellas','siento','siente','sientes','creo','pienso','sería','sido','poder','puede','pueden','hace','hacer','tiene','tienen','tener','está','están','estoy','somos','son','soy','trabajo','trabajar','empresa']);
-  const freq = {};
-  textos.forEach(t => {
-    t.toString().toLowerCase().replace(/[.,;:!¿?"'()]/g, '').split(/\s+/).forEach(w => {
-      if (w.length > 3 && !stopwords.has(w)) freq[w] = (freq[w] || 0) + 1;
-    });
-  });
-  return Object.entries(freq).filter(([w, c]) => c >= 2).sort((a, b) => b[1] - a[1]).slice(0, 8);
-}
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str == null ? '' : str;
   return div.innerHTML;
 }
+
+// ─────────────────────────────────────────────
+// ANÁLISIS DE RESPUESTAS ABIERTAS (todo ocurre en este navegador; ningún comentario sale de la página)
+// Lectura automática por reglas: sirve para orientar, no sustituye leer los comentarios.
+// ─────────────────────────────────────────────
+const MIN_COMENTARIOS = 8;   // con menos comentarios que esto, los % de temas se leen con cautela
+
+// Temas: cada uno ligado (cuando aplica) a un bloque del banco de preguntas
+const TEMAS = [
+  { id:'carga', nombre:'Carga de trabajo y ritmo', bloque:'Carga y bienestar',
+    re:/\b(carga|sobrecarg\w*|saturad\w*|rebasad\w*|desbordad\w*|abrumad\w*|mucho trabajo|tanto trabajo|demasiad[oa]s? (?:trabajo|tarea|pendiente|cosa|proyecto)\w*|no (?:me |nos )?alcanza\w*|no (?:me |nos )?da (?:el )?tiempo|falta de tiempo|sin tiempo|presion\w*|urgente\w*|urgencia\w*|apagando incendios|fechas? limite|deadline\w*|cierre|horas? extras?|jornadas? (?:larga|extensa|pesada)\w*|ritmo)\b/ },
+  { id:'bienestar', nombre:'Bienestar y equilibrio', bloque:'Carga y bienestar',
+    re:/\b(cansanc\w*|cansad\w*|agotad\w*|agotam\w*|desgast\w*|burnout|estres\w*|ansied\w*|salud|descans\w*|desconect\w*|vacacion\w*|dormir|equilibrio|balance|fuera de (?:mi |su )?horario|fines? de semana|whatsapp|bienestar|animo|desmotiv\w*|motivad\w*)\b/ },
+  { id:'reconocimiento', nombre:'Reconocimiento', bloque:'Reconocimiento y propósito',
+    re:/\b(reconoc\w*|valorad\w*|valoran|valorar|valoracion|felicit\w*|agradec\w*|agradezc\w*|incentiv\w*|premi\w*|desapercib\w*|se nota|meritos?)\b/ },
+  { id:'comunicacion', nombre:'Comunicación e información', bloque:'Comunicación y confianza',
+    re:/\b(comunic\w*|informacion|informan|informar|informad\w*|enter(?:o|amos|an|arme|ar)|avis(?:o|an|ar|aron)|rumor\w*|transparen\w*|canales?|no (?:nos )?dicen|sin contexto|ultima hora|reuniones?|correos?|mensajes?|escuch\w*)\b/ },
+  { id:'liderazgo', nombre:'Liderazgo y dirección', bloque:'Liderazgo y dirección',
+    re:/\b(jef[ea]s?|lider\w*|director\w*|directivo\w*|direccion general|gerent\w*|gerencia|supervis\w*|coordinador\w*|microgest\w*|instruccion\w*|prioridad\w*|rumbo|estrategia|decisiones|expectativas|claridad|retroaliment\w*|feedback)\b/ },
+  { id:'companerismo', nombre:'Compañerismo y ambiente', bloque:'Compañerismo',
+    re:/\b(companer\w*|trabajo en equipo|equipo(?! de (?:computo|oficina))|apoyo entre|ambiente|convivenc\w*|respeto|tension|chisme\w*|grupitos|cada quien)\b/ },
+  { id:'orgullo', nombre:'Orgullo y cultura', bloque:'Orgullo',
+    re:/\b(orgull\w*|cultura|valores|mision|vision|imagen|reputacion|recomend\w*|pertenen\w*|identific\w*|camiseta|buen lugar para trabajar)\b/ },
+  { id:'compensacion', nombre:'Sueldo y prestaciones', bloque:'Reconocimiento y propósito',
+    re:/\b(sueldo\w*|salari\w*|pago\w*|pagan|pagaron|paga|quincena\w*|prestaciones|aguinaldo|bonos?|aumento\w*|compensacion|gano|ganamos|vales|seguro|utilidades|ptu|descuento\w*|nomina|tabulador)\b/ },
+  { id:'crecimiento', nombre:'Crecimiento y desarrollo', bloque:'Reconocimiento y propósito',
+    re:/\b(crecer|crecimiento|desarroll\w*|capacitaci\w*|cursos?|ascenso\w*|promocion\w*|plan de carrera|aprend\w*|oportunidades? de|estancad\w*|carrera|formacion|subir de puesto|movilidad)\b/ },
+  { id:'recursos', nombre:'Herramientas y recursos', bloque:null,
+    re:/\b(herramienta\w*|sistemas?|plataforma\w*|computadora\w*|laptop\w*|licencia\w*|software|internet|falta(?:n)? (?:de |mas )?(?:personal|gente|recursos|material|manos)|recursos|material|presupuesto|vacante\w*|sin personal|poca gente|poco personal|rotacion|contrata\w*)\b/ },
+  { id:'procesos', nombre:'Procesos y coordinación entre áreas', bloque:null,
+    re:/\b(proceso\w*|procedimiento\w*|burocra\w*|papeleo|autorizacion\w*|aprobacion\w*|desorganiz\w*|improvis\w*|caos|retrabajo|duplicad\w*|coordinacion|entre areas|otras areas|silos)\b/ },
+  { id:'flexibilidad', nombre:'Horarios y flexibilidad', bloque:null,
+    re:/\b(home ?office|remoto|hibrid\w*|flexib\w*|horarios?|traslado\w*|transporte|puntualidad|permisos?)\b/ },
+  { id:'instalaciones', nombre:'Espacio e instalaciones', bloque:null,
+    re:/\b(oficina\w*|instalacion\w*|aire acondicionado|ruido|banos?|comedor|cafeteria|estacionamiento|mobiliario|silla\w*|escritorio\w*|limpieza)\b/ },
+  { id:'encuesta', nombre:'Sobre esta encuesta y su seguimiento', bloque:null,
+    re:/\b(encuesta\w*|pulso\w*|anonim\w*|tu voz|hacen caso|van a hacer algo|sirve de algo|se hace algo|resultados)\b/ },
+];
+
+// Alertas: temas sensibles que conviene leer con cuidado. "negable" = se ignora si viene precedido de "no/nunca/sin…"
+const ALERTAS = [
+  { id:'bienestar-critico', nivel:'alta',  tipo:'Bienestar personal: leer con mucho cuidado', negable:false,
+    re:/\b(quitarme la vida|no quiero vivir|hacerme dano|me quiero morir|suicid\w*)\b/ },
+  { id:'acoso', nivel:'alta', tipo:'Posible acoso u hostigamiento', negable:true,
+    re:/\b(acoso|acosad\w*|hostigam\w*|hostigan|insinuacion\w*|comentarios (?:sexuales|inapropiados|subidos)|propuestas indecorosas)\b/ },
+  { id:'discriminacion', nivel:'alta', tipo:'Posible discriminación', negable:true,
+    re:/\b(discrimin\w*|racis\w*|machis\w*|homofob\w*|xenofob\w*|por ser mujer|por mi edad|por mi (?:color|religion|orientacion|apariencia))\b/ },
+  { id:'maltrato', nivel:'alta', tipo:'Posible maltrato o trato hostil', negable:true,
+    re:/\b(maltrat\w*|humill\w*|amenaz\w*|intimid\w*|represalia\w*|agred\w*|violencia|insult\w*|me grita\w*|nos grita\w*|gritos|gritan|abusan|abuso de|trato hostil|hostil\w*|burlas|ridiculiz\w*|mobbing)\b/ },
+  { id:'etico', nivel:'alta', tipo:'Posible tema ético o legal', negable:true,
+    re:/\b(fraude\w*|corrupcion|soborno\w*|robo|robar|desfalco|ilegal\w*|sin contrato|denunci\w*|falsific\w*|conflicto de interes\w*)\b/ },
+  { id:'pago', nivel:'media', tipo:'Pago o condiciones laborales', negable:false,
+    re:/\b(no me (?:han )?pag\w*|no nos (?:han )?pag\w*|nos deben|me deben|retraso en (?:el )?pago|descuentos? (?:injust\w*|indebid\w*)|horas extras? (?:sin pago|no (?:se )?pagad\w*|no nos pagan)|sin seguro|sin prestaciones)\b/ },
+  { id:'salida', nivel:'media', tipo:'Intención de salir de la empresa', negable:false,
+    re:/\b(renunci\w*|me quiero ir|ya me voy|me voy(?! a (?:casa|dormir|comer))|buscando (?:otro )?(?:trabajo|empleo|oportunidad\w*)|otra oferta|irme de (?:la empresa|aqui)|dejar la empresa|ya no quiero (?:seguir|estar|trabajar)|todos se (?:van|estan yendo))\b/ },
+  { id:'desgaste', nivel:'media', tipo:'Desgaste o salud', negable:true,
+    re:/\b(burnout|agotamiento|no puedo mas|ya no puedo|no aguanto|insomnio|no duermo|ansiedad|depresi\w*|ataque de panico|me enferm\w*|estoy enferm\w*|salud mental|al limite|colapso)\b/ },
+  { id:'favoritismo', nivel:'media', tipo:'Percepción de injusticia o favoritismo', negable:true,
+    re:/\b(favoritism\w*|preferid\w*|amiguis\w*|compadraz\w*|nepotism\w*|injust\w*|trato desigual|doble estandar|no es equitativ\w*|hay influencias|palanca\w*)\b/ },
+  { id:'incertidumbre', nivel:'media', tipo:'Incertidumbre laboral', negable:true,
+    re:/\b(despido\w*|recorte\w*|reestructur\w*|cierre de (?:la )?empresa|nos van a (?:correr|despedir)|miedo a perder|inestabilidad)\b/ },
+];
+
+// Palabras de tono
+const POS_EXACTO = new Set(['bien','bueno','buena','buenos','buenas','excelente','excelentes','genial','feliz','felices','contento','contenta','contentos','mejoro','mejoraron','unidos','unido','buen']);
+const POS_PREFIJO = ['agradec','agradezc','content','orgullos','motivad','comod','satisf','apoy','confian','respet','reconoc','valorad','valoran','felicit','excelen','gust','ayud','flexib','amable','cercan','colaboraci','cordial','alegr','tranquil','respald','escuch','disfrut','aprecio','cuidan','encant','companerism','admir','agrad'];
+const NEG_EXACTO = new Set(['mal','malo','mala','malos','malas','tarde','lento','lentos','harto','hartos','peor','pesa']);
+const NEG_PREFIJO = ['pesim','terribl','horribl','dificil','cansad','cansanc','agotad','agotam','estres','presion','molest','frustr','decepcion','desmotiv','injust','sobrecarg','saturad','desorden','desorganiz','caos','abandon','ignor','desapercib','problem','quej','preocup','inseguri','inseguro','miedo','temor','incomod','toxic','hostil','favoritis','grit','desigual','insuficien','deficien','confus','tension','conflict','desgast','apagando','incendio','urgen','retras','pesad','abrum','ansied','sobrepas','desbord','descuid','estancad'];
+const NEGADORES = new Set(['no','nunca','ni','nada','tampoco','sin','jamas','ninguno','ninguna','ningun','falta','faltan','falto','carece','carecemos','carecen','poco','poca','pocos','pocas']);
+const HUECO = new Set(['falta','faltan','falto','carece','carecemos','carecen']);
+const CUES_SUGERENCIA = /\b(seria (?:bueno|genial|mejor|importante|util|excelente|ideal)|estaria (?:bien|genial|mejor)|me gustaria|ojala|deberian?|podrian?|ayudaria|mejoraria|facilitaria|serviria|permitiria|al menos|seria(?= )|sugiero|sugerimos|(?<!cuando )(?<!si )propongo|recomiendo|convendria|hace falta|haria falta|vendria bien|necesitamos mas|necesitariamos)\b/g;
+const QUEJAS = /\b(demasiad[oa]s?|no (?:me |nos )?alcanza(?:n)?|no (?:me |nos )?da(?:n)? (?:el )?tiempo|no (?:me |nos )?doy abasto|me llevo pendientes|sin descanso|no (?:hay|existe|existen) (?:oportunidad\w*|crecimiento|desarrollo|espacio\w*|comunicacion|claridad|apoyo|reconocimiento)|cambia(?:n)? (?:las |los |de )?(?:prioridades|planes|instrucciones|criterios)|nadie (?:nos |me )?(?:explica|dice|informa|avisa|escucha|apoya)|no (?:nos |me )?(?:explican|dicen|informan|avisan|escuchan|toman en cuenta)|por debajo del mercado|no (?:me |nos )?(?:han )?pag\w*|sueldo (?:bajo|insuficiente)|poco (?:sueldo|dinero)|siempre lo mismo|nos enteramos (?:tarde|por rumores))\b/g;
+const SEPARADORES = /(?<=[.!?;])\s+|\n+|\s+(?:pero|aunque|sin embargo|no obstante|por otro lado|aun asi)\s+/i;
+
+const limpiar = s => norm(s).replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+const empiezaCon = (t, lista) => lista.some(p => t.startsWith(p));
+
+function puntuarSegmento(segNorm) {
+  const tieneSug = new RegExp(CUES_SUGERENCIA.source).test(segNorm);
+  const tokens = segNorm.replace(CUES_SUGERENCIA, ' sug ').split(' ').filter(Boolean);
+  let pos = 0, neg = 0, hueco = false;
+  tokens.forEach((t, i) => {
+    if (HUECO.has(t)) hueco = true;
+    const esPos = POS_EXACTO.has(t) || empiezaCon(t, POS_PREFIJO);
+    const esNeg = (NEG_EXACTO.has(t) && !(t === 'tarde' && ['la','esta','en','por','de','buenas'].includes(tokens[i - 1]))) || empiezaCon(t, NEG_PREFIJO);
+    if (!esPos && !esNeg) return;
+    const negada = tokens.slice(Math.max(0, i - 3), i).some(w => NEGADORES.has(w));
+    if (esPos) { if (negada) neg++; else pos++; }
+    else if (!negada) neg++;          // "no es malo" se neutraliza
+  });
+  neg += Math.min(2, (segNorm.match(QUEJAS) || []).length);
+  if (hueco && neg === 0) neg = 1;    // "falta tiempo", "faltan manos": señala una carencia
+  return { pos, neg, tieneSug };
+}
+
+function analizarComentario(texto) {
+  const original = String(texto || '').trim();
+  const segs = original.split(SEPARADORES).map(s => s.trim()).filter(s => s.length > 2).map(txt => {
+    const n = limpiar(txt);
+    const pt = puntuarSegmento(n);
+    let sent = pt.pos > pt.neg ? 'positivo' : pt.neg > pt.pos ? 'negativo' : (pt.pos > 0 ? 'mixto' : 'neutral');
+    if (pt.tieneSug && pt.neg === 0) sent = 'neutral';   // un deseo o propuesta sin queja explícita
+    return { txt, sent, sug: pt.tieneSug, mag: pt.pos + pt.neg, temas: TEMAS.filter(t => t.re.test(n)).map(t => t.id) };
+  });
+
+  const hayPos = segs.some(s => s.sent === 'positivo' || s.sent === 'mixto');
+  const hayNeg = segs.some(s => s.sent === 'negativo' || s.sent === 'mixto');
+  const sent = hayPos && hayNeg ? 'mixto' : hayPos ? 'positivo' : hayNeg ? 'negativo' : 'neutral';
+
+  const temas = {};
+  segs.forEach(s => s.temas.forEach(id => {
+    const t = temas[id] || (temas[id] = { pos: false, neg: false, sug: false, ejemplo: null });
+    if (s.sent === 'positivo' || s.sent === 'mixto') t.pos = true;
+    if (s.sent === 'negativo' || s.sent === 'mixto') t.neg = true;
+    if (s.sug) t.sug = true;
+    if (!t.ejemplo || s.mag > t.ejemplo.mag || (s.mag === t.ejemplo.mag && s.txt.length < t.ejemplo.txt.length)) t.ejemplo = s;
+  }));
+  Object.keys(temas).forEach(id => {
+    const t = temas[id];
+    t.sent = t.pos && t.neg ? 'mixto' : t.pos ? 'positivo' : t.neg ? 'negativo' : 'neutral';
+  });
+
+  const todo = limpiar(original);
+  const alertas = ALERTAS.filter(a => {
+    const m = a.re.exec(todo);
+    if (!m) return false;
+    if (a.negable && /\b(no|nunca|ni|sin|ningun\w*)(?: \w+){0,2} $/.test(todo.slice(Math.max(0, m.index - 24), m.index))) return false;
+    return true;
+  });
+  return { segs, sent, sug: segs.some(s => s.sug), temas, alertas };
+}
+
+function analisisFila(f) { return f._an || (f._an = analizarComentario(f.abierta)); }
+
+function resumenAbiertas(filas) {
+  const conTexto = filas.filter(f => f.abierta && f.abierta.trim());
+  const tono = { positivo: 0, mixto: 0, negativo: 0, neutral: 0 };
+  const porTema = {};
+  TEMAS.forEach(t => { porTema[t.id] = { t, n: 0, positivo: 0, mixto: 0, negativo: 0, neutral: 0, sug: 0, ejemplos: [] }; });
+  const ideas = [];
+  conTexto.forEach(f => {
+    const an = analisisFila(f);
+    tono[an.sent]++;
+    Object.entries(an.temas).forEach(([id, info]) => {
+      const T = porTema[id];
+      T.n++; T[info.sent]++; if (info.sug) T.sug++;
+      if (info.ejemplo) T.ejemplos.push(info.ejemplo);
+    });
+    an.segs.filter(s => s.sug).forEach(s => ideas.push(s));
+  });
+  const temas = Object.values(porTema).filter(x => x.n > 0).sort((a, b) => b.n - a.n);
+  return { n: conTexto.length, tono, temas, porTema, ideas, sugerencias: conTexto.filter(f => analisisFila(f).sug).length };
+}
+
+function alertasDePulso(p) {
+  const peso = a => a.alertas.some(x => x.nivel === 'alta') ? 2 : 1;
+  return p.filas.filter(f => f.abierta && f.abierta.trim()).map(f => ({ f, an: analisisFila(f) }))
+    .filter(x => x.an.alertas.length).sort((a, b) => peso(b.an) - peso(a.an));
+}
+
+function recorte(txt, max) {
+  max = max || 170;
+  if (txt.length <= max) return txt;
+  const c = txt.slice(0, max);
+  return c.slice(0, Math.max(c.lastIndexOf(' '), 60)) + '…';
+}
+
+// ───────────── Respuestas abiertas: vista de un mes ─────────────
+const SENT_INFO = {
+  positivo: { txt: 'Positivos', c: '#3FA66B' },
+  mixto:    { txt: 'Mixtos', c: '#E0A62B' },
+  negativo: { txt: 'Con queja', c: '#D64545' },
+  neutral:  { txt: 'Neutros o propuestas', c: '#B8B7AE' }
+};
+const ORDEN_SENT = ['positivo', 'mixto', 'negativo', 'neutral'];
+
+function barraTono(t, n) {
+  if (!n) return '';
+  return `<div class="tono-bar">${ORDEN_SENT.filter(k => t[k]).map(k => `<div style="width:${t[k] / n * 100}%; background:${SENT_INFO[k].c}"></div>`).join('')}</div>
+    <div class="tono-leyenda">${ORDEN_SENT.filter(k => t[k]).map(k => `<span><i style="background:${SENT_INFO[k].c}"></i>${SENT_INFO[k].txt}: <strong>${t[k]}</strong> (${Math.round(t[k] / n * 100)}%)</span>`).join('')}</div>`;
+}
+
+// El nivel de puesto solo se muestra si el grupo es lo bastante grande para no identificar a nadie
+function nivelVisible(p, f) {
+  if (f.nivel === 'sin-clasificar') return 'Sin clasificar';
+  const n = p.filas.filter(x => x.nivel === f.nivel).length;
+  return n >= MIN_N_NIVEL ? nivelLabel(f.nivel) : 'Nivel no mostrado (grupo pequeño)';
+}
+
+function htmlAlertas(p) {
+  if (!p.filas.some(f => f.abierta && f.abierta.trim())) return '';
+  const al = alertasDePulso(p);
+  if (!al.length) {
+    return `<div class="card"><div class="card-tag"><span class="dot"></span>Para leer con cuidado</div>
+      <div class="sin-datos">La lectura automática no detectó comentarios con señales de alerta este mes. No sustituye leer los comentarios completos.</div></div>`;
+  }
+  const hayCritico = al.some(x => x.an.alertas.some(a => a.id === 'bienestar-critico'));
+  return `<div class="card alerta-card">
+    <div class="card-tag" style="color:var(--bad);"><span class="dot" style="background:var(--bad);"></span>Para leer con cuidado (${al.length})</div>
+    <h2 style="margin-bottom:6px;">Comentarios que conviene revisar</h2>
+    <div class="resumen-nota" style="margin:0 0 14px;">Son comentarios donde aparecen temas sensibles (trato, salud, pagos, posible salida…). Es una lectura automática: puede marcar de más o quedarse corta, por eso conviene leerlos completos y con calma.</div>
+    ${hayCritico ? `<div class="aviso-box" style="margin-bottom:14px;">Uno de los comentarios sugiere que alguien podría estar pasando por un momento muy difícil. Como las respuestas son anónimas no se puede buscar a la persona, pero vale la pena pensar cómo hacer más visibles los apoyos disponibles para todos.</div>` : ''}
+    ${al.map(({ f, an }) => `<div class="alerta-item ${an.alertas.some(a => a.nivel === 'alta') ? 'alta' : 'media'}">
+      <div class="alerta-chips">${an.alertas.map(a => `<span class="alerta-chip ${a.nivel}">${a.nivel === 'alta' ? 'Prioridad' : 'Atención'} · ${escapeHtml(a.tipo)}</span>`).join('')}</div>
+      <div class="abierta-txt">${escapeHtml(f.abierta)}</div>
+      <div class="abierta-nivel" style="margin:6px 0 0;">${escapeHtml(nivelVisible(p, f))}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function htmlTemas(res, p) {
+  let lista = res.temas.filter(x => x.n >= 2);
+  if (lista.length < 3) lista = res.temas.slice(0, 3);
+  lista = lista.slice(0, 8);
+  return lista.map(x => {
+    const t = x.t;
+    const ej = [...x.ejemplos].sort((a, b) => b.mag - a.mag || a.txt.length - b.txt.length).slice(0, 2);
+    let nota = '';
+    if (t.bloque) {
+      const s = statsBloque(p.filas, t.bloque);
+      if (s.n && s.color !== 'verde' && (x.negativo + x.mixto) >= 2) nota = `<div class="tema-nota">Coincide con el semáforo de <strong>${t.bloque}</strong> (${s.color === 'rojo' ? '🔴 alerta' : '🟡 atención'}).</div>`;
+    } else if (x.n >= 2) {
+      nota = `<div class="tema-nota">Este tema <strong>no está en el banco de preguntas</strong>: aparece solo por lo que la gente escribe.</div>`;
+    }
+    return `<div class="tema-card">
+      <div class="tema-top">
+        <div class="tema-nombre">${t.nombre} <span class="tema-chip">${t.bloque || 'Fuera del banco'}</span></div>
+        <div class="tema-n"><strong>${x.n}</strong> comentario${x.n === 1 ? '' : 's'} · ${Math.round(x.n / res.n * 100)}%</div>
+      </div>
+      ${barraTono({ positivo: x.positivo, mixto: x.mixto, negativo: x.negativo, neutral: x.neutral }, x.n)}
+      ${x.sug ? `<div class="tema-sug">💡 ${x.sug} comentario${x.sug === 1 ? '' : 's'} con una idea o propuesta</div>` : ''}
+      ${ej.map(e => `<div class="tema-ej">“${escapeHtml(recorte(e.txt))}”</div>`).join('')}
+      ${nota}
+    </div>`;
+  }).join('');
+}
+
+function htmlAbiertas(p, filtradas) {
+  const res = resumenAbiertas(filtradas);
+  let html = htmlAlertas(p);
+
+  html += `<div class="card">
+    <div class="card-tag"><span class="dot"></span>Respuestas abiertas (${res.n})</div>
+    <h2 style="margin-bottom:4px;">Lo que dicen los comentarios</h2>`;
+  if (!res.n) {
+    return html + `<div class="sin-datos" style="margin-top:8px;">Aún no hay comentarios abiertos con el filtro actual.</div></div>`;
+  }
+  html += `<div class="resumen-nota" style="margin:0 0 16px;">Lectura automática de los comentarios: agrupa por tema y mide el tono de cada idea (un mismo comentario puede hablar bien de un tema y mal de otro). Es una guía para orientar la conversación; no sustituye leer los comentarios.</div>
+    ${barraTono(res.tono, res.n)}
+    <div class="tema-lista">${htmlTemas(res, p)}</div>
+  </div>`;
+
+  // Ideas que proponen
+  const vistas = new Set();
+  const ideas = res.ideas.filter(s => { const k = s.txt.toLowerCase(); if (vistas.has(k)) return false; vistas.add(k); return true; })
+    .sort((a, b) => a.txt.length - b.txt.length).slice(0, 6);
+  if (ideas.length) {
+    html += `<div class="card">
+      <div class="card-tag"><span class="dot"></span>Ideas que proponen</div>
+      <h2 style="margin-bottom:4px;">Lo que la gente sugiere, en sus palabras</h2>
+      <div class="resumen-nota" style="margin:0 0 12px;">Buen punto de partida para conversarlo con los líderes: quien lo vive, sabe cómo mejorarlo.</div>
+      ${ideas.map(s => `<div class="idea-item">“${escapeHtml(recorte(s.txt, 220))}”${s.temas[0] ? ` <span class="tema-chip">${TEMAS.find(t => t.id === s.temas[0]).nombre}</span>` : ''}</div>`).join('')}
+    </div>`;
+  }
+
+  // Todos los comentarios
+  const abiertas = filtradas.filter(f => f.abierta && f.abierta.trim());
+  html += `<div class="card">
+    <div class="card-tag"><span class="dot"></span>Comentarios completos</div>
+    <button class="btn-toggle-abiertas" onclick="toggleAbiertas()" id="btn-toggle-abiertas" style="margin-top:0;">Ver las ${abiertas.length} respuestas completas</button>
+    <div id="lista-abiertas">
+      ${abiertas.map(f => { const an = analisisFila(f);
+        const temasTxt = Object.keys(an.temas).slice(0, 3).map(id => `<span class="tema-chip">${TEMAS.find(t => t.id === id).nombre}</span>`).join(' ');
+        return `<div class="abierta-item">
+          <div class="abierta-nivel">${escapeHtml(nivelVisible(p, f))} · <span style="color:${SENT_INFO[an.sent].c}; font-weight:600;">${SENT_INFO[an.sent].txt.replace('Con queja', 'Con queja').replace('Neutros o propuestas', 'Neutro / propuesta')}</span>${an.alertas.length ? ' · <span style="color:var(--bad); font-weight:600;">Para leer con cuidado</span>' : ''}</div>
+          <div class="abierta-txt">${escapeHtml(f.abierta)}</div>
+          ${temasTxt ? `<div style="margin-top:6px;">${temasTxt}</div>` : ''}
+        </div>`; }).join('')}
+    </div>
+  </div>`;
+  return html;
+}
+
+// ───────────── Respuestas abiertas: comparar meses ─────────────
+function comparativoAbiertas(ok, A, B) {
+  const res = ok.map(p => ({ p, r: resumenAbiertas(p.filas), al: alertasDePulso(p) }));
+  const pocos = res.filter(x => x.r.n < MIN_COMENTARIOS);
+  const totalPorTema = {};
+  TEMAS.forEach(t => { totalPorTema[t.id] = res.reduce((a, x) => a + x.r.porTema[t.id].n, 0); });
+  const ultimo = res[res.length - 1].r;
+  const temasMostrar = TEMAS.filter(t => totalPorTema[t.id] >= 2 || res.some(x => x.r.porTema[t.id].n >= 2))
+    .sort((a, b) => (ultimo.porTema[b.id].n - ultimo.porTema[a.id].n) || (totalPorTema[b.id] - totalPorTema[a.id])).slice(0, 10);
+
+  let html = `<div class="card"><div class="card-tag"><span class="dot"></span>Respuestas abiertas</div>
+    <h2 style="margin-bottom:4px;">Cómo cambia la conversación, mes a mes</h2>
+    <div class="resumen-nota" style="margin:0 0 14px;">Para cada tema se muestra en qué % de los comentarios del mes aparece. ${pocos.length ? `<strong>Ojo:</strong> ${pocos.map(x => escapeHtml(x.p.label.split(' ')[0])).join(' y ')} ${pocos.length === 1 ? 'tiene' : 'tienen'} pocos comentarios (menos de ${MIN_COMENTARIOS}), así que los % son solo una pista.` : ''}</div>
+    <div class="tabla-matriz-wrap"><table class="tabla-cmp">
+      <thead><tr><th>&nbsp;</th>${res.map(x => thMes(x.p, `${x.r.n} comentario${x.r.n === 1 ? '' : 's'}`)).join('')}</tr></thead>
+      <tbody>
+        <tr><td>Tono general</td>${res.map(x => `<td>${x.r.n ? `${barraTono(x.r.tono, x.r.n).split('<div class="tono-leyenda">')[0]}<span class="celda-n">${Math.round((x.r.tono.negativo + x.r.tono.mixto) / x.r.n * 100)}% con alguna queja</span>` : '–'}</td>`).join('')}</tr>
+        <tr><td>Para leer con cuidado</td>${res.map(x => `<td>${x.al.length ? `<strong style="color:var(--bad);">${x.al.length}</strong>` : '0'}</td>`).join('')}</tr>
+        ${temasMostrar.map(t => {
+          let prev = null;
+          return `<tr><td>${t.nombre}<span class="th-sub" style="text-align:left;">${t.bloque || 'Fuera del banco'}</span></td>${res.map(x => {
+            const n = x.r.porTema[t.id].n;
+            const pct = x.r.n ? Math.round(n / x.r.n * 100) : 0;
+            let chip = '';
+            if (prev && prev.r.n >= MIN_COMENTARIOS && x.r.n >= MIN_COMENTARIOS) chip = deltaChip(pct - Math.round(prev.r.porTema[t.id].n / prev.r.n * 100));
+            prev = x;
+            const queja = x.r.porTema[t.id].negativo + x.r.porTema[t.id].mixto;
+            return `<td>${n ? `<strong>${pct}%</strong><span class="celda-n">${n} comentario${n === 1 ? '' : 's'}${queja ? ` · ${queja} con queja` : ''}</span>${chip}` : '<span class="celda-prot">–</span>'}</td>`;
+          }).join('')}</tr>`;
+        }).join('')}
+      </tbody></table></div>`;
+
+  // Temas que aparecen / dejan de aparecer entre los dos meses elegidos
+  const rA = resumenAbiertas(A.filas), rB = resumenAbiertas(B.filas);
+  const nuevos = TEMAS.filter(t => rB.porTema[t.id].n >= 2 && rA.porTema[t.id].n === 0);
+  const idos = TEMAS.filter(t => rA.porTema[t.id].n >= 2 && rB.porTema[t.id].n === 0);
+  if (nuevos.length || idos.length) {
+    html += `<div style="margin-top:16px; font-size:12.5px; color:var(--ink-mid); line-height:1.7;">
+      ${nuevos.length ? `<div><strong>Aparece en</strong> ${chipMes(B)} <strong>y no en</strong> ${chipMes(A)}<strong>:</strong> ${nuevos.map(t => t.nombre).join(', ')}.</div>` : ''}
+      ${idos.length ? `<div><strong>Estaba en</strong> ${chipMes(A)} <strong>y ya no aparece en</strong> ${chipMes(B)}<strong>:</strong> ${idos.map(t => t.nombre).join(', ')}.</div>` : ''}
+    </div>`;
+  }
+  return html + `</div>`;
+}
+
 
 // ─────────────────────────────────────────────
 // DATOS DE EJEMPLO (solo si no hay conexión) — dos meses para ver el diseño
@@ -562,7 +927,7 @@ function tabsHtml() {
   const ok = pulsosOk();
   const mesCorto = p => p.label.split(' ')[0];
   return `<div class="vista-tabs">
-    ${PULSOS.map(p => `<button class="vista-tab ${vista === p.key ? 'active' : ''}" onclick="cambiarVista('${p.key}')">${p.esOtro ? 'Sin identificar' : (p.label.startsWith('Pulso') ? escapeHtml(p.label) : mesCorto(p))}<small>${escapeHtml(p.bloque || '')}${p.ciclo ? ' · ' + escapeHtml(p.ciclo) : ''} · ${p.filas.length} resp.</small></button>`).join('')}
+    ${PULSOS.map(p => `<button class="vista-tab ${vista === p.key ? 'active' : ''}" style="${vista === p.key ? `background:${p.col.main}; border-color:${p.col.main}; color:${p.col.tinta};` : `border-left:5px solid ${p.col.main};`}" onclick="cambiarVista('${p.key}')">${p.esOtro ? 'Sin identificar' : (p.label.startsWith('Pulso') ? escapeHtml(p.label) : mesCorto(p))}<small>${escapeHtml(p.bloque || '')}${p.ciclo ? ' · ' + escapeHtml(p.ciclo) : ''} · ${p.filas.length} resp.</small></button>`).join('')}
     ${ok.length >= 1 ? `<button class="vista-tab comparar ${vista === 'comparar' ? 'active' : ''}" onclick="cambiarVista('comparar')">⇄ Comparar meses<small>Cómo se mueve cada mes</small></button>` : ''}
   </div>`;
 }
@@ -700,21 +1065,8 @@ function renderPulso(p) {
     monitoreo.forEach(id => { html += htmlPregunta(p, id, true); });
   }
 
-  // Abiertas
-  const abiertas = filtradas.filter(f => f.abierta);
-  const temas = analizarTendencias(abiertas.map(f => f.abierta));
-  html += `
-  <div class="card" style="margin-top:26px;">
-    <div class="card-tag"><span class="dot"></span>Respuestas abiertas (${abiertas.length})</div>
-    <h2 style="margin-bottom:14px;">Temas que más se repiten</h2>
-    ${temas.length === 0 ? '<div class="sin-datos">Aún no hay suficientes respuestas para detectar temas.</div>' : `
-      <div class="temas-wrap">${temas.map(([w, c]) => `<div class="tema-pill">${escapeHtml(w)}<span>× ${c}</span></div>`).join('')}</div>
-      <div class="sin-datos" style="margin-bottom:6px;">Palabras que aparecen con más frecuencia en las respuestas abiertas. Es una guía rápida, no sustituye leer los comentarios completos.</div>`}
-    ${abiertas.length > 0 ? `<button class="btn-toggle-abiertas" onclick="toggleAbiertas()" id="btn-toggle-abiertas">Ver las ${abiertas.length} respuestas completas</button>` : ''}
-    <div id="lista-abiertas">
-      ${abiertas.map(f => `<div class="abierta-item"><div class="abierta-nivel">${nivelLabel(f.nivel)}</div><div class="abierta-txt">${escapeHtml(f.abierta)}</div></div>`).join('')}
-    </div>
-  </div>`;
+  // Respuestas abiertas: lectura por temas, tono y alertas
+  html += htmlAbiertas(p, filtradas);
   return html;
 }
 
@@ -782,8 +1134,14 @@ function narrativaPulso(p) {
   if (preg.length > 1) {
     out.push(`A nivel de pregunta específica, la mejor percepción se da en "${escapeHtml(Q[preg[0].id].texto)}" (${preg[0].pctPositivo}% positivo), y la que necesita más foco es "${escapeHtml(Q[preg[preg.length - 1].id].texto)}" (${preg[preg.length - 1].pctPositivo}% positivo).`);
   }
-  const temas = analizarTendencias(filas.filter(f => f.abierta).map(f => f.abierta));
-  if (temas.length) out.push(`En las respuestas abiertas, los temas que más se repiten son: ${temas.slice(0, 5).map(([w]) => `<strong>${escapeHtml(w)}</strong>`).join(', ')}.`);
+  const ra = resumenAbiertas(filas);
+  if (ra.n) {
+    const top = ra.temas.slice(0, 3).map(x => `<strong>${x.t.nombre}</strong>`).join(', ');
+    const conQueja = ra.tono.negativo + ra.tono.mixto;
+    out.push(`En los ${ra.n} comentarios abiertos, los temas que más aparecen son ${top}. ${conQueja ? `${Math.round(conQueja / ra.n * 100)}% de los comentarios trae alguna queja o preocupación` : 'Casi ningún comentario trae quejas'}${ra.sugerencias ? `, y ${ra.sugerencias} incluye${ra.sugerencias === 1 ? '' : 'n'} una idea o propuesta` : ''}.`);
+  }
+  const al = alertasDePulso(p);
+  if (al.length) out.push(`Hay <strong>${al.length} comentario${al.length === 1 ? '' : 's'}</strong> que conviene leer con cuidado (ver «Para leer con cuidado» más abajo).`);
   return out;
 }
 
@@ -808,8 +1166,8 @@ function renderComparativo() {
     <div class="card-tag"><span class="dot"></span>Participación por mes</div>
     <h2 style="margin-bottom:14px;">¿Cuántas personas respondieron cada mes?</h2>
     ${ok.map(p => `<div class="part-row">
-      <div class="part-mes">${escapeHtml(p.label)}<small>${escapeHtml(p.bloque || '')}${p.ciclo ? ' · ' + escapeHtml(p.ciclo) : ''}</small></div>
-      <div class="part-bar-wrap"><div class="part-bar-fill" style="width:${p.filas.length / maxN * 100}%"></div></div>
+      <div class="part-mes">${chipMes(p, p.label)}<small>${escapeHtml(p.bloque || '')}${p.ciclo ? ' · ' + escapeHtml(p.ciclo) : ''}</small></div>
+      <div class="part-bar-wrap" style="background:${p.col.xl};"><div class="part-bar-fill" style="width:${p.filas.length / maxN * 100}%; background:${p.col.main};"></div></div>
       <div class="part-num">${p.filas.length} <small>· ${Math.round(p.filas.length / META * 100)}%</small></div>
     </div>`).join('')}
     <div class="resumen-nota">El % es sobre ${META} colaboradores. Si un mes responde menos gente, sus resultados se leen con un poco más de cuidado.</div>
@@ -821,7 +1179,7 @@ function renderComparativo() {
     <h2 style="margin-bottom:4px;">El termómetro de cada bloque, mes a mes</h2>
     <div class="resumen-nota" style="margin:0 0 14px;">Para que la comparación sea justa se mira la misma pregunta cada mes: la primera pregunta fija de cada bloque (se hace todos los meses, ya sea como pregunta profunda o de monitoreo). ◆ marca el mes en que ese bloque fue el profundo.</div>
     <div class="tabla-matriz-wrap"><table class="tabla-cmp">
-      <thead><tr><th>Bloque</th>${ok.map(p => `<th>${escapeHtml(p.label.split(' ')[0])}<span class="th-sub">${escapeHtml(p.bloque || '')}</span></th>`).join('')}</tr></thead>
+      <thead><tr><th>Bloque</th>${ok.map(p => thMes(p, escapeHtml(p.bloque || ''))).join('')}</tr></thead>
       <tbody>
       ${BLOQUES_ORDEN.map(b => {
         const qid = TERMOMETRO[b];
@@ -849,8 +1207,8 @@ function renderComparativo() {
   const A = ok.find(p => p.key === cmpA), B = ok.find(p => p.key === cmpB);
   const opts = sel => ok.map(p => `<option value="${p.key}" ${p.key === sel ? 'selected' : ''}>${escapeHtml(p.label)}</option>`).join('');
   html += `<div class="cmp-bar">Comparar
-    <select class="cmp-select" onchange="cmpA=this.value; render();">${opts(cmpA)}</select>
-    con <select class="cmp-select" onchange="cmpB=this.value; render();">${opts(cmpB)}</select></div>`;
+    <select class="cmp-select" style="border-left:6px solid ${A.col.main};" onchange="cmpA=this.value; render();">${opts(cmpA)}</select>
+    con <select class="cmp-select" style="border-left:6px solid ${B.col.main};" onchange="cmpB=this.value; render();">${opts(cmpB)}</select></div>`;
 
   // Preguntas que se hicieron en ambos meses
   const comunes = CATALOGO.map(q => q.id).filter(id => statsPregunta(A.filas, id).n > 0 && statsPregunta(B.filas, id).n > 0);
@@ -874,15 +1232,23 @@ function renderComparativo() {
     if (!bajan.length && !suben.length) lectura.push('En general, los indicadores se mantuvieron parecidos entre ambos meses.');
     lectura.push('Con grupos pequeños, unos pocos puntos de diferencia pueden ser solo variación normal; conviene leerlos como tendencia y contrastarlos con lo que cuentan las respuestas abiertas.');
   }
+  const rA = resumenAbiertas(A.filas), rB = resumenAbiertas(B.filas);
+  if (rA.n >= MIN_COMENTARIOS && rB.n >= MIN_COMENTARIOS) {
+    const cambios = TEMAS.map(t => ({ t, a: Math.round(rA.porTema[t.id].n / rA.n * 100), b: Math.round(rB.porTema[t.id].n / rB.n * 100) }))
+      .map(x => Object.assign(x, { d: x.b - x.a })).sort((x, y) => y.d - x.d);
+    if (cambios[0].d >= UMBRAL_MOVIMIENTO) lectura.splice(lectura.length - 1, 0, `En los comentarios abiertos creció la conversación sobre <strong>${cambios[0].t.nombre}</strong> (de ${cambios[0].a}% a ${cambios[0].b}% de los comentarios).`);
+  }
+  const alB = alertasDePulso(B);
+  if (alB.length) lectura.splice(lectura.length - 1, 0, `En ${escapeHtml(B.label.split(' ')[0])} hay <strong>${alB.length} comentario${alB.length === 1 ? '' : 's'}</strong> que conviene leer con cuidado (se ven en la pestaña de ese mes).`);
   html += `<div class="card"><div class="card-tag"><span class="dot"></span>Lectura del movimiento</div>
-    <h2 style="margin-bottom:14px;">${escapeHtml(A.label.split(' ')[0])} → ${escapeHtml(B.label.split(' ')[0])}</h2>
+    <h2 style="margin-bottom:14px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">${chipMes(A)} <span style="color:var(--ink-muted);">→</span> ${chipMes(B)}</h2>
     ${lectura.map(t => `<p style="font-size:13.5px; color:var(--ink-mid); line-height:1.65; margin-bottom:10px;">${t}</p>`).join('')}</div>`;
 
   // Lista de movimientos
   const itemMov = (m, clase) => `<div class="mov-item ${clase}">
       <div class="mov-top"><span class="pregunta-bloque">${Q[m.id].bloque} <em>· ${Q[m.id].bloque === A.bloque || Q[m.id].bloque === B.bloque ? Q[m.id].tipo : 'Monitoreo'}</em></span>${deltaChip(m.delta)}</div>
       <div class="mov-txt">${escapeHtml(Q[m.id].texto)}</div>
-      <div class="mov-nums">${escapeHtml(A.label.split(' ')[0])}: <strong>${m.a.pctPositivo}%</strong> positivo${m.a.pctAlerta ? ` · ${m.a.pctAlerta}% alerta` : ''} &nbsp;→&nbsp; ${escapeHtml(B.label.split(' ')[0])}: <strong>${m.b.pctPositivo}%</strong> positivo${m.b.pctAlerta ? ` · ${m.b.pctAlerta}% alerta` : ''}</div>
+      <div class="mov-nums">${chipMes(A)} <strong>${m.a.pctPositivo}%</strong> positivo${m.a.pctAlerta ? ` · ${m.a.pctAlerta}% alerta` : ''} &nbsp;→&nbsp; ${chipMes(B)} <strong>${m.b.pctPositivo}%</strong> positivo${m.b.pctAlerta ? ` · ${m.b.pctAlerta}% alerta` : ''}</div>
     </div>`;
   html += `<div class="card"><div class="card-tag"><span class="dot"></span>Qué se movió</div>
     <h2 style="margin-bottom:14px;">Preguntas que se hicieron en ambos meses</h2>
@@ -897,7 +1263,7 @@ function renderComparativo() {
   html += `<div class="card"><div class="card-tag"><span class="dot"></span>Por nivel de puesto</div>
     <h2 style="margin-bottom:4px;">¿Cómo se movió cada nivel?</h2>
     <div class="resumen-nota" style="margin:0 0 14px;">% en zona positiva sumando las ${comunes.length} preguntas que se hicieron en ambos meses. Los grupos con menos de ${MIN_N_NIVEL} personas no se muestran, para cuidar el anonimato.</div>
-    <table class="tabla-cmp"><thead><tr><th>Nivel</th><th>${escapeHtml(A.label.split(' ')[0])}</th><th>${escapeHtml(B.label.split(' ')[0])}</th><th>Movimiento</th></tr></thead><tbody>
+    <table class="tabla-cmp"><thead><tr><th>Nivel</th>${thMes(A)}${thMes(B)}<th>Movimiento</th></tr></thead><tbody>
     ${NIVELES.map(nv => {
       const fa = A.filas.filter(f => f.nivel === nv.key), fb = B.filas.filter(f => f.nivel === nv.key);
       if (fa.length < MIN_N_NIVEL || fb.length < MIN_N_NIVEL || !comunes.length) return `<tr><td>${nv.label}</td><td colspan="3" class="celda-prot">Grupo pequeño en alguno de los meses: no se muestra</td></tr>`;
@@ -906,14 +1272,7 @@ function renderComparativo() {
     }).join('')}
     </tbody></table></div>`;
 
-  // Temas de abiertas por mes
-  html += `<div class="card"><div class="card-tag"><span class="dot"></span>Respuestas abiertas</div>
-    <h2 style="margin-bottom:14px;">Temas que se repiten, mes a mes</h2>
-    ${ok.map(p => {
-      const t = analizarTendencias(p.filas.filter(f => f.abierta).map(f => f.abierta));
-      return `<div style="margin-bottom:14px;"><div style="font-size:12.5px; font-weight:600; margin-bottom:8px;">${escapeHtml(p.label)}</div>${t.length ? `<div class="temas-wrap" style="margin-bottom:0;">${t.slice(0, 6).map(([w, c]) => `<div class="tema-pill">${escapeHtml(w)}<span>× ${c}</span></div>`).join('')}</div>` : '<div class="sin-datos">Aún sin suficientes respuestas para detectar temas.</div>'}</div>`;
-    }).join('')}
-  </div>`;
+  html += comparativoAbiertas(ok, A, B);
   return html;
 }
 </script>
