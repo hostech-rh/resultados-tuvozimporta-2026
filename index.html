@@ -267,7 +267,8 @@
 // ─────────────────────────────────────────────
 // CONFIGURACIÓN — edita aquí si algo cambia
 // ─────────────────────────────────────────────
-const DASHBOARD_PASSWORD = 'hostech-rh-2026';   // contraseña para ver el panel
+const PEDIR_CONTRASENA = false;                  // false = entra directo, sin contraseña. Cambia a true para volver a pedirla
+const DASHBOARD_PASSWORD = 'hostech-rh-2026';   // contraseña (solo se usa si PEDIR_CONTRASENA es true)
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNHeokK808clIxbqB1Li6qi9MrgInZM9qf_-gdMOmJ3UxB-OsMKtAFlr0sWXvk6jHR/exec';
 const CLAVE_SECRETA = 'hostech-pulso-2026';     // debe coincidir con la del Apps Script
 const META_RESPUESTAS_DEFAULT = 110;             // total de colaboradores en HOSTECH (valor inicial)
@@ -880,7 +881,7 @@ function checkPassword() {
   }
 }
 document.getElementById('gate-input').addEventListener('keydown', function(e){ if (e.key === 'Enter') checkPassword(); });
-if (sessionStorage.getItem('tvi_dashboard_auth') === 'ok') {
+if (!PEDIR_CONTRASENA || sessionStorage.getItem('tvi_dashboard_auth') === 'ok') {
   document.getElementById('gate').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   cargarDatos();
