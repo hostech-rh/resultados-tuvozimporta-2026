@@ -1296,17 +1296,17 @@ function renderPulso(p) {
           const qid = TERMOMETRO[b.nombre];
           const prev = pulsoPrevioCon(p, qid);
           const cur = statsPregunta(p.filas, qid);
-          if (prev && cur.n > 0) vs = `<div class="resumen-vs">Termómetro vs ${prev.label.split(' ')[0]}: ${deltaChip(cur.pctPositivo - statsPregunta(prev.filas, qid).pctPositivo)}</div>`;
+          if (prev && cur.n > 0) vs = `<div class="resumen-vs">${profundo ? `Pregunta termómetro: <strong>${cur.pctPositivo}%</strong> · ` : 'Termómetro '}vs ${prev.label.split(' ')[0]}: ${deltaChip(cur.pctPositivo - statsPregunta(prev.filas, qid).pctPositivo)}</div>`;
         }
         return `<div class="resumen-card ${b.color}">
           <div class="resumen-nombre">${b.nombre}${profundo ? ' <span class="deep-mark">◆ profundo</span>' : ''}</div>
           <div class="resumen-badge ${b.color}"><span class="dot-lg"></span>${etiqueta[b.color]}</div>
-          <div class="resumen-detalle">${b.pctPositivo}% en zona positiva${b.pctAlerta > 0 ? ` · ${b.pctAlerta}% en alerta` : ''}</div>
+          <div class="resumen-detalle">${b.pctPositivo}% en zona positiva${b.pctAlerta > 0 ? ` · ${b.pctAlerta}% en alerta` : ''}${profundo ? `<br><span style="color:var(--ink-muted);">Promedio de sus ${CATALOGO.filter(q => q.bloque === b.nombre && p.qids.includes(q.id)).length} preguntas del mes</span>` : ''}</div>
           ${vs}
         </div>`;
       }).join('')}
     </div>
-    <div class="resumen-nota">◆ Bloque profundo del mes (varias preguntas). Los demás se leen con su pregunta de monitoreo. Para ver la evolución completa, usa «Comparar meses».</div>
+    <div class="resumen-nota">◆ Bloque profundo del mes (varias preguntas): su % promedia todas sus preguntas; la «pregunta termómetro» es la que se repite cada mes y es la que se usa en «Comparar meses». Los demás se leen con su pregunta de monitoreo. Para ver la evolución completa, usa «Comparar meses».</div>
   </div>`;
 
   // Foco por nivel
@@ -1663,7 +1663,7 @@ function renderComparativo() {
   html += `<div class="card">
     <div class="card-tag"><span class="dot"></span>Evolución por bloque</div>
     <h2 style="margin-bottom:4px;">El termómetro de cada bloque, mes a mes</h2>
-    <div class="resumen-nota" style="margin:0 0 14px;">Para que la comparación sea justa se mira la misma pregunta cada mes: la primera pregunta fija de cada bloque (se hace todos los meses, ya sea como pregunta profunda o de monitoreo). ◆ marca el mes en que ese bloque fue el profundo.</div>
+    <div class="resumen-nota" style="margin:0 0 14px;">Para que la comparación sea justa se mira la misma pregunta cada mes: la primera pregunta fija de cada bloque (se hace todos los meses, ya sea como pregunta profunda o de monitoreo). ◆ marca el mes en que ese bloque fue el profundo. Por eso, en el mes en que un bloque es el profundo, este % puede ser distinto al del semáforo del mes, que promedia todas sus preguntas.</div>
     <div class="tabla-matriz-wrap"><table class="tabla-cmp">
       <thead><tr><th>Bloque</th>${ok.map(p => thMes(p, escapeHtml(p.bloque || ''))).join('')}</tr></thead>
       <tbody>
