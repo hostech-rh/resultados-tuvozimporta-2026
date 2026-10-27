@@ -271,6 +271,7 @@
   .btn-copiar { border:1.5px solid var(--border); background:var(--white); border-radius:20px; padding:8px 16px; font-size:12.5px; font-weight:500; cursor:pointer; font-family:inherit; color:var(--ink); }
   .btn-copiar:hover { border-color:var(--pink); color:var(--pink); }
 </style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -279,10 +280,9 @@
   <div class="gate-card">
     <div class="brand-logo">H</div>
     <h1>Tu voz importa</h1>
-    <p>Panel de seguimiento — acceso restringido a Recursos Humanos y Dirección General.</p>
-    <input type="password" id="gate-input" placeholder="Contraseña" autocomplete="off">
-    <button onclick="checkPassword()">Entrar</button>
-    <p class="gate-error" id="gate-error">Contraseña incorrecta, inténtalo de nuevo.</p>
+    <p>Panel de seguimiento — acceso restringido a Recursos Humanos y Dirección General. Entra con tu cuenta de HOSTECH.</p>
+    <div id="google-btn" style="display:flex; justify-content:center; min-height:44px;"></div>
+    <p class="gate-error" id="gate-error"></p>
   </div>
 </div>
 
@@ -313,10 +313,10 @@
 // ─────────────────────────────────────────────
 // CONFIGURACIÓN — edita aquí si algo cambia
 // ─────────────────────────────────────────────
-const PEDIR_CONTRASENA = false;                  // false = entra directo, sin contraseña. Cambia a true para volver a pedirla
-const DASHBOARD_PASSWORD = 'hostech-rh-2026';   // contraseña (solo se usa si PEDIR_CONTRASENA es true)
+// Acceso: se entra con la cuenta de Google de HOSTECH. Quién puede ver resultados se decide en el
+// Apps Script (lista CORREOS_PERMITIDOS), no aquí.
+const GOOGLE_CLIENT_ID = '504943309492-6o8t442avqc27erqpt37ro2spt1ec0uu.apps.googleusercontent.com';
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNHeokK808clIxbqB1Li6qi9MrgInZM9qf_-gdMOmJ3UxB-OsMKtAFlr0sWXvk6jHR/exec';
-const CLAVE_SECRETA = 'hostech-pulso-2026';     // debe coincidir con la del Apps Script
 const META_RESPUESTAS_DEFAULT = 110;             // total de colaboradores en HOSTECH (valor inicial)
 const MIN_N_NIVEL = 5;                           // grupos con menos personas no se muestran en comparativos (anonimato)
 const UMBRAL_MOVIMIENTO = 10;                    // puntos porcentuales para considerar que algo "se movió"
@@ -403,7 +403,7 @@ function parseMes(raw) {
   return null;
 }
 
-const COLUMNAS_NO_PREGUNTA = ['respuesta abierta','abierta','nivel de puesto','nivel','mes','ciclo','bloque','fecha'];
+const COLUMNAS_NO_PREGUNTA = ['respuesta abierta','abierta','nivel de puesto','nivel','mes','ciclo','bloque','bloque profundo','fecha'];
 
 function procesarFila(r) {
   const resp = {};   // { qid: índice de opción elegida (0 = la más positiva) }
@@ -424,7 +424,7 @@ function procesarFila(r) {
   let bloque = null, max = 0;
   BLOQUES_ORDEN.forEach(b => { if ((cuentas[b] || 0) > max) { max = cuentas[b]; bloque = b; } });
   if (max < 3) {
-    const col = campo(r, ['bloque']);
+    const col = campo(r, ['bloque profundo', 'bloque']);
     bloque = BLOQUES_ORDEN.find(b => norm(b) === norm(col)) || null;
   }
 
@@ -916,29 +916,55 @@ function generarDatosEjemplo() {
 // ─────────────────────────────────────────────
 // CANDADO
 // ─────────────────────────────────────────────
-function checkPassword() {
-  const val = document.getElementById('gate-input').value;
-  if (val === DASHBOARD_PASSWORD) {
-    sessionStorage.setItem('tvi_dashboard_auth', 'ok');
-    document.getElementById('gate').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    cargarDatos();
+// Sesión con Google: el token se guarda solo mientras la pestaña está abierta
+function tokenGuardado() {
+  try {
+    const t = JSON.parse(sessionStorage.getItem('tvi_google') || 'null');
+    return t && t.exp > Date.now() + 60000 ? t.token : null;
+  } catch (e) { return null; }
+}
+function mostrarAcceso(msg) {
+  try { sessionStorage.removeItem('tvi_google'); } catch (e) {}
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('gate').style.display = 'flex';
+  const err = document.getElementById('gate-error');
+  err.textContent = msg || ''; err.style.display = msg ? 'block' : 'none';
+  if (window.google && google.accounts && google.accounts.id) {
+    google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: alEntrarConGoogle, auto_select: true });
+    google.accounts.id.renderButton(document.getElementById('google-btn'), { theme: 'outline', size: 'large', text: 'signin_with', locale: 'es' });
   } else {
-    document.getElementById('gate-error').style.display = 'block';
+    setTimeout(() => mostrarAcceso(msg), 300);   // la librería de Google todavía está cargando
   }
 }
-document.getElementById('gate-input').addEventListener('keydown', function(e){ if (e.key === 'Enter') checkPassword(); });
-if (!PEDIR_CONTRASENA || sessionStorage.getItem('tvi_dashboard_auth') === 'ok') {
+function alEntrarConGoogle(r) {
+  let exp = Date.now() + 50 * 60000;
+  try { exp = JSON.parse(atob(r.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).exp * 1000; } catch (e) {}
+  try { sessionStorage.setItem('tvi_google', JSON.stringify({ token: r.credential, exp })); } catch (e) {}
+  TOKEN = r.credential;
   document.getElementById('gate').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   cargarDatos();
 }
+let TOKEN = null;
+function arrancar() {
+  if (location.protocol === 'file:') {   // abierto desde la computadora: solo datos de ejemplo
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    cargarDatos();
+    return;
+  }
+  TOKEN = tokenGuardado();
+  if (TOKEN) { document.getElementById('gate').style.display = 'none'; document.getElementById('app').style.display = 'block'; cargarDatos(); }
+  else mostrarAcceso();
+}
+window.addEventListener('load', arrancar);
 
 // ─────────────────────────────────────────────
 // CARGA DE DATOS
 // ─────────────────────────────────────────────
 let RESPUESTAS = [];
 let MODO_EJEMPLO = false;
+let ERROR_CONEXION = '';
 let vista = null;          // key del pulso que se está viendo, o 'comparar'
 let cmpA = null, cmpB = null;
 let filtroActual = 'todos';
@@ -948,14 +974,29 @@ async function cargarDatos() {
   const content = document.getElementById('content-area');
   content.innerHTML = '<div class="loading">Cargando datos…</div>';
   try {
-    const res = await fetch(APPS_SCRIPT_URL + '?key=' + encodeURIComponent(CLAVE_SECRETA));
-    const data = await res.json();
-    if (data.status !== 'ok') throw new Error(data.message || 'Error desconocido');
+    await Promise.resolve();   // deja terminar de cargar el resto del código antes de seguir
+    if (location.protocol === 'file:') throw new Error('El archivo se abrió desde tu computadora. Ábrelo desde su dirección de GitHub Pages.');
+    let res;
+    TOKEN = tokenGuardado();
+    if (!TOKEN) { mostrarAcceso('Tu sesión terminó. Vuelve a entrar con tu cuenta.'); return; }
+    try { res = await fetch(APPS_SCRIPT_URL + '?id_token=' + encodeURIComponent(TOKEN)); }
+    catch (e) { throw new Error('El navegador no pudo leer el Apps Script. Lo más común: la implementación no tiene acceso «Cualquier persona», o la URL del Apps Script cambió.'); }
+    const cuerpo = await res.text();
+    let data;
+    try { data = JSON.parse(cuerpo); }
+    catch (e) { throw new Error('El Apps Script respondió algo que no son datos (posiblemente una pantalla de inicio de sesión o un error). Revisa que la implementación tenga acceso «Cualquier persona».'); }
+    if (data.status !== 'ok') {
+      const e = data.message || data.error || 'Error desconocido';
+      if (e === 'sesion') { mostrarAcceso('Tu sesión terminó o no se pudo confirmar. Vuelve a entrar con tu cuenta.'); return; }
+      if (e === 'no_autorizado') { mostrarAcceso(`La cuenta ${data.email || ''} no tiene acceso a los resultados. Pide a RH que la agregue.`); return; }
+      throw new Error('El Apps Script respondió: ' + e);
+    }
     RESPUESTAS = data.respuestas || [];
     MODO_EJEMPLO = false;
     document.getElementById('last-update').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
   } catch (err) {
     MODO_EJEMPLO = true;
+    ERROR_CONEXION = err && err.message ? err.message : String(err);
     RESPUESTAS = generarDatosEjemplo();
     document.getElementById('last-update').textContent = 'Sin conexión — mostrando ejemplo';
   }
@@ -988,7 +1029,7 @@ function render() {
     return;
   }
   let html = '';
-  if (MODO_EJEMPLO) html += `<div class="error-box" style="margin-bottom:18px;">⚠ Estás viendo <strong>datos de ejemplo (ficticios)</strong>, solo para revisar el diseño. Aún no está conectado a tu Google Sheet real.</div>`;
+  if (MODO_EJEMPLO) html += `<div class="error-box" style="margin-bottom:18px;">⚠ Estás viendo <strong>datos de ejemplo (ficticios)</strong>, solo para revisar el diseño. Aún no está conectado a tu Google Sheet real.${ERROR_CONEXION ? `<br><span style="font-size:12px;">Motivo: ${escapeHtml(ERROR_CONEXION)}</span>` : ''}</div>`;
   html += tabsHtml();
 
   if (vista === 'abiertas') {
