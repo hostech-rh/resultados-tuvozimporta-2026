@@ -179,6 +179,8 @@
   .ab-grupo-body { padding:0 14px 12px; }
   .ab-todos { border:none; margin:0; } .ab-todos summary { padding:0; }
   .ab-mes-titulo { margin:16px 0 4px; }
+  .pc-resumen { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:10px; }
+  .pc-res-item { display:flex; gap:10px; align-items:flex-start; background:var(--cream); border-radius:var(--radius-sm); padding:10px 12px; font-size:13.5px; }
 
   /* ---------- Comparativo ---------- */
   .cmp-bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:22px; font-size:13px; color:var(--ink-mid); }
@@ -1002,7 +1004,7 @@ async function cargarDatos() {
   }
   PULSOS = construirPulsos(RESPUESTAS);
   const ok = pulsosOk();
-  if (!vista || (vista !== 'comparar' && vista !== 'abiertas' && !PULSOS.some(p => p.key === vista))) vista = ok.length ? ok[ok.length - 1].key : (PULSOS[0] ? PULSOS[0].key : null);
+  if (!vista || (vista !== 'comparar' && vista !== 'abiertas' && vista !== 'propcom' && !PULSOS.some(p => p.key === vista))) vista = ok.length ? ok[ok.length - 1].key : (PULSOS[0] ? PULSOS[0].key : null);
   cmpA = null; cmpB = null;
   render();
 }
@@ -1017,6 +1019,7 @@ function tabsHtml() {
   const mesCorto = p => p.label.split(' ')[0];
   return `<div class="vista-tabs">
     ${PULSOS.map(p => `<button class="vista-tab ${vista === p.key ? 'active' : ''}" style="${vista === p.key ? `background:${p.col.main}; border-color:${p.col.main}; color:${p.col.tinta};` : `border-left:5px solid ${p.col.main};`}" onclick="cambiarVista('${p.key}')">${p.esOtro ? 'Sin identificar' : (p.label.startsWith('Pulso') ? escapeHtml(p.label) : mesCorto(p))}<small>${escapeHtml(p.bloque || '')}${p.ciclo ? ' · ' + escapeHtml(p.ciclo) : ''} · ${p.filas.length} resp.</small></button>`).join('')}
+    ${ok.length >= 1 ? `<button class="vista-tab comparar ${vista === 'propcom' ? 'active' : ''}" onclick="cambiarVista('propcom')">💡 Propuestas<small>Desde los comentarios</small></button>` : ''}
     ${ok.length >= 1 ? `<button class="vista-tab comparar ${vista === 'abiertas' ? 'active' : ''}" onclick="cambiarVista('abiertas')">💬 Respuestas abiertas<small>Todos los comentarios juntos</small></button>` : ''}
     ${ok.length >= 1 ? `<button class="vista-tab comparar ${vista === 'comparar' ? 'active' : ''}" onclick="cambiarVista('comparar')">⇄ Comparar meses<small>Cómo se mueve cada mes</small></button>` : ''}
   </div>`;
@@ -1032,7 +1035,10 @@ function render() {
   if (MODO_EJEMPLO) html += `<div class="error-box" style="margin-bottom:18px;">⚠ Estás viendo <strong>datos de ejemplo (ficticios)</strong>, solo para revisar el diseño. Aún no está conectado a tu Google Sheet real.${ERROR_CONEXION ? `<br><span style="font-size:12px;">Motivo: ${escapeHtml(ERROR_CONEXION)}</span>` : ''}</div>`;
   html += tabsHtml();
 
-  if (vista === 'abiertas') {
+  if (vista === 'propcom') {
+    document.getElementById('brand-dept').textContent = 'Panel de seguimiento · Propuestas desde los comentarios';
+    html += renderPropuestasComentarios();
+  } else if (vista === 'abiertas') {
     document.getElementById('brand-dept').textContent = 'Panel de seguimiento · Respuestas abiertas';
     html += renderAbiertasConsolidado();
   } else if (vista === 'comparar') {
@@ -1531,6 +1537,105 @@ function renderAbiertasConsolidado() {
         return items.length ? `<div class="ab-mes-titulo">${chipMes(p, p.label)}</div>${items.map(htmlComentarioAb).join('')}` : ''; }).join('')}</div>
     </details>
   </div>`;
+  return html;
+}
+
+// ───────────── Vista PROPUESTAS DESDE LOS COMENTARIOS ─────────────
+// Toma los temas que más aparecen en las respuestas abiertas (todos los meses) y propone acciones sencillas para cada uno.
+const ACCIONES_TEMA_EXTRA = {
+  compensacion: { porque: 'El sueldo no lo decide el líder, pero sí cómo se escucha y se explica.', acciones: [
+    { t: 'Explicar cómo funciona', c: 'Aclarar con RH cómo se calculan bonos, aumentos o prestaciones y compartirlo con el equipo en palabras sencillas.', e: 'Una junta' },
+    { t: 'Llevar los casos concretos', c: 'Juntar dudas o casos puntuales (pagos, prestaciones) y llevarlos a RH en lugar de dejarlos sin respuesta.', e: 'Sin costo' },
+    { t: 'Reconocer lo que no es dinero', c: 'Mientras tanto, cuidar el reconocimiento diario, la flexibilidad y el crecimiento, que también pesan.', e: 'Un hábito' },
+  ]},
+  crecimiento: { porque: 'Ver un camino para crecer retiene y motiva.', acciones: [
+    { t: 'Plática de desarrollo', c: 'Una conversación de 20 minutos con cada persona: qué le gustaría aprender y hacia dónde quiere crecer.', e: '20 min por persona' },
+    { t: 'Aprender del compañero', c: 'Que quien domina un tema se lo enseñe al equipo en 15 minutos al mes.', e: '15 min al mes' },
+    { t: 'Retos pequeños', c: 'Dar a alguien una tarea nueva o un proyecto corto que le permita mostrar otra habilidad.', e: 'Sin costo' },
+  ]},
+  recursos: { porque: 'La falta de herramientas o de manos multiplica la carga.', acciones: [
+    { t: 'Lista de obstáculos', c: 'Cada persona anota qué herramienta, acceso o información le falta; el líder lleva los dos que más se repiten a quien corresponda.', e: 'Una semana' },
+    { t: 'Revisar la plantilla y redistribuir', c: 'Revisar quién lleva qué y cuánto volumen; repartir mejor y documentar con datos si falta gente.', e: 'Una sesión al mes' },
+    { t: 'Plantillas para lo repetitivo', c: 'Guardar en una carpeta compartida los formatos y respuestas que se hacen una y otra vez.', e: 'Ahorra horas' },
+  ]},
+  procesos: { porque: 'Los procesos lentos y la descoordinación generan retrabajo.', acciones: [
+    { t: 'Elegir el trámite que más estorba', c: 'Que el equipo elija un proceso o autorización que más tiempo les quita y simplificarlo con el área involucrada.', e: 'Un mes' },
+    { t: 'Enlace entre áreas', c: 'Nombrar una persona de contacto con cada área con la que más se trabaja, para no rebotar pendientes.', e: 'Sin costo' },
+    { t: 'Acuerdos por escrito', c: 'Al cerrar una junta entre áreas, dejar en un mensaje quién hace qué y para cuándo.', e: '5 min por junta' },
+  ]},
+  flexibilidad: { porque: 'Pequeños ajustes de horario pueden aliviar mucho sin afectar la operación.', acciones: [
+    { t: 'Revisar turnos con el equipo', c: 'Preguntar si hay ajustes sencillos de horario o permisos que ayuden, cuidando que la operación quede cubierta.', e: 'Una conversación' },
+    { t: 'Reglas claras de permisos', c: 'Explicar cómo se piden permisos y cambios de horario, para que todos tengan las mismas reglas.', e: 'Sin costo' },
+    { t: 'Desconexión en temporada alta', c: 'Acordar horarios y canales para urgencias en los picos, con guardias que se roten.', e: 'Sin costo' },
+  ]},
+  instalaciones: { porque: 'El espacio también influye en cómo se trabaja.', acciones: [
+    { t: 'Lista de arreglos rápidos', c: 'Juntar lo que se puede resolver pronto (ruido, mobiliario, limpieza) y pasarlo a quien corresponda.', e: 'Una semana' },
+    { t: 'Avisar qué se resolvió', c: 'Contar al equipo qué se arregló a partir de lo que dijeron.', e: 'Sin costo' },
+  ]},
+  encuesta: { porque: 'La gente quiere ver que contestar sirve de algo.', acciones: [
+    { t: 'Cerrar el ciclo', c: 'Compartir con el equipo un resumen de los resultados y qué se va a probar a partir de ellos.', e: 'Una junta' },
+    { t: '«Esto cambió por ustedes»', c: 'Cuando se haga un ajuste, decir que nació de la encuesta, aunque sea pequeño.', e: 'Sin costo' },
+  ]},
+};
+function accionesDeTema(id) {
+  const mapa = {
+    carga: ACCIONES_PREGUNTA.B1, bienestar: ACCIONES_PREGUNTA.B3,
+    reconocimiento: ACCIONES_BLOQUE['Reconocimiento y propósito'], comunicacion: ACCIONES_BLOQUE['Comunicación y confianza'],
+    liderazgo: ACCIONES_BLOQUE['Liderazgo y dirección'], companerismo: ACCIONES_BLOQUE['Compañerismo'], orgullo: ACCIONES_BLOQUE['Orgullo'],
+  };
+  return mapa[id] || ACCIONES_TEMA_EXTRA[id] || null;
+}
+
+let pcMes = 'todos';
+
+function renderPropuestasComentarios() {
+  const ok = pulsosOk();
+  const filas = ok.filter(p => pcMes === 'todos' || p.key === pcMes).flatMap(p => p.filas.map(f => Object.assign(f, { _p: p })));
+  const res = resumenAbiertas(filas);
+  let html = `<div class="page-title">Propuestas desde los comentarios</div>
+  <div class="page-sub">Los temas que más se repiten en las respuestas abiertas y qué pueden probar los líderes para atenderlos</div>
+  <div class="filtro-wrap"><label>Comentarios de:</label><select onchange="pcMes=this.value; render();"><option value="todos">Todos los meses</option>${ok.map(p => `<option value="${p.key}" ${pcMes === p.key ? 'selected' : ''}>${escapeHtml(p.label)}</option>`).join('')}</select></div>`;
+  if (!res.n) return html + `<div class="card"><div class="sin-datos">Todavía no hay comentarios abiertos.</div></div>`;
+
+  const temas = res.temas.filter(x => accionesDeTema(x.t.id))
+    .map(x => Object.assign(x, { peso: x.negativo + x.mixto + x.sug }))
+    .filter(x => x.n >= 2 || res.temas.length < 4)
+    .sort((a, b) => b.peso - a.peso || b.n - a.n).slice(0, 6);
+
+  html += `<div class="card propuestas-card">
+    <div class="card-tag"><span class="dot"></span>Resumen</div>
+    <h2 style="margin-bottom:10px;">Lo que más piden, en orden</h2>
+    <div class="pc-resumen">${temas.map((x, i) => `<div class="pc-res-item"><span class="prop-num">${i + 1}</span><div><strong>${x.t.nombre}</strong><div class="resumen-nota" style="margin:2px 0 0;">${x.n} de ${res.n} comentarios (${Math.round(x.n / res.n * 100)}%)${x.negativo + x.mixto ? ` · ${x.negativo + x.mixto} con queja` : ''}${x.sug ? ` · ${x.sug} con propuesta` : ''}</div></div></div>`).join('')}</div>
+    ${res.n < MIN_COMENTARIOS ? `<div class="resumen-nota" style="margin:12px 0 0;">Son pocos comentarios, así que tómalo como una pista.</div>` : ''}
+  </div>`;
+
+  const vistas = new Set();
+  temas.forEach((x, i) => {
+    const lib = accionesDeTema(x.t.id);
+    const acciones = lib.acciones.filter(a => !vistas.has(a.t)); acciones.forEach(a => vistas.add(a.t));
+    const quejas = [...x.ejemplos].sort((a, b) => b.mag - a.mag || a.txt.length - b.txt.length)
+      .filter((e, k, arr) => arr.findIndex(o => norm(o.txt) === norm(e.txt)) === k).slice(0, 2);
+    const ideas = res.ideas.filter(s => s.temas.includes(x.t.id) && !quejas.some(q => norm(q.txt) === norm(s.txt)))
+      .filter((e, k, arr) => arr.findIndex(o => norm(o.txt) === norm(e.txt)) === k).slice(0, 2);
+    html += `<div class="card">
+      <div class="prop-head">
+        <span class="prop-num">${i + 1}</span>
+        <div style="flex:1;">
+          <div class="prop-bloque">${escapeHtml(x.t.bloque || 'Fuera del banco de preguntas')}</div>
+          <div class="prop-preg" style="font-size:17px;">${x.t.nombre}</div>
+          <div class="prop-porque">${escapeHtml(lib.porque)}</div>
+        </div>
+      </div>
+      ${quejas.length ? `<div class="prop-temas-t" style="margin-top:6px;">Lo que dicen</div>${quejas.map(e => `<div class="tema-ej">“${escapeHtml(recorte(e.txt, 200))}”</div>`).join('')}` : ''}
+      ${ideas.length ? `<div class="prop-temas-t" style="margin-top:12px;">💡 Lo que proponen</div>${ideas.map(s => `<div class="idea-item">“${escapeHtml(recorte(s.txt, 200))}”</div>`).join('')}` : ''}
+      ${acciones.length ? `<div class="prop-temas-t" style="margin-top:14px;">Qué pueden probar los líderes</div>
+      <div class="prop-acciones">${acciones.map(a => `<div class="prop-accion"><div class="prop-accion-t">${escapeHtml(a.t)} <span class="prop-esfuerzo">${escapeHtml(a.e)}</span></div><div class="prop-accion-c">${escapeHtml(a.c)}</div></div>`).join('')}</div>` : ''}
+    </div>`;
+  });
+
+  html += `<div class="card"><div class="prop-como" style="margin:0;"><div class="prop-temas-t">Cómo llevarlo con cada equipo</div>
+    <ol><li>Compartir el tema que más le toque al equipo, con las frases textuales.</li><li>Preguntar: «<em>¿cuál de estas probarían, o qué otra se les ocurre?</em>».</li><li>Elegir una sola y probarla dos semanas.</li><li>Ver en el siguiente pulso si el tema baja en los comentarios.</li></ol>
+    <div class="resumen-nota" style="margin:8px 0 0;">Lectura automática de los comentarios: orienta la conversación, no sustituye leerlos completos en «Respuestas abiertas».</div></div></div>`;
   return html;
 }
 
