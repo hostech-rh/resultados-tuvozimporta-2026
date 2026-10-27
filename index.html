@@ -163,6 +163,22 @@
   .abierta-item:last-child { border-bottom:none; }
   .abierta-nivel { font-size:10.5px; text-transform:uppercase; color:var(--ink-muted); letter-spacing:0.04em; margin-bottom:4px; }
   .abierta-txt { font-size:13.5px; line-height:1.55; }
+  .abierta-nivel .mes-chip { text-transform:none; letter-spacing:0; }
+  .abierta-pie { font-size:11px; color:var(--ink-muted); margin-top:6px; }
+  .ab-meses { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:12px; }
+  .ab-mes { border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:12px; }
+  .ab-mes-n { font-size:13px; margin:8px 0 6px; }
+  .ab-filtros { flex-wrap:wrap; gap:8px; }
+  .ab-grupo { border:1.5px solid var(--border); border-radius:var(--radius-sm); margin-bottom:10px; }
+  .ab-grupo summary { cursor:pointer; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; list-style:none; }
+  .ab-grupo summary::-webkit-details-marker { display:none; }
+  .ab-grupo summary::before { content:'▸'; color:var(--pink); margin-right:-4px; }
+  .ab-grupo[open] summary::before { content:'▾'; }
+  .ab-grupo-nombre { font-weight:600; font-size:14px; flex:1; }
+  .ab-grupo-n { font-size:12px; color:var(--ink-mid); display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  .ab-grupo-body { padding:0 14px 12px; }
+  .ab-todos { border:none; margin:0; } .ab-todos summary { padding:0; }
+  .ab-mes-titulo { margin:16px 0 4px; }
 
   /* ---------- Comparativo ---------- */
   .cmp-bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:22px; font-size:13px; color:var(--ink-mid); }
@@ -818,7 +834,7 @@ function htmlAbiertas(p, filtradas) {
       ${abiertas.map(f => { const an = analisisFila(f);
         const temasTxt = Object.keys(an.temas).slice(0, 3).map(id => `<span class="tema-chip">${TEMAS.find(t => t.id === id).nombre}</span>`).join(' ');
         return `<div class="abierta-item">
-          <div class="abierta-nivel">${escapeHtml(nivelVisible(p, f))} · <span style="color:${SENT_INFO[an.sent].c}; font-weight:600;">${SENT_INFO[an.sent].txt.replace('Con queja', 'Con queja').replace('Neutros o propuestas', 'Neutro / propuesta')}</span>${an.alertas.length ? ' · <span style="color:var(--bad); font-weight:600;">Para leer con cuidado</span>' : ''}</div>
+          <div class="abierta-nivel">${escapeHtml(nivelVisible(p, f))} · <span style="color:${TONO_TINTA[an.sent]}; font-weight:600;">${TONO_TXT[an.sent]}</span>${an.alertas.length ? ' · <span style="color:var(--bad); font-weight:600;">Para leer con cuidado</span>' : ''}</div>
           <div class="abierta-txt">${escapeHtml(f.abierta)}</div>
           ${temasTxt ? `<div style="margin-top:6px;">${temasTxt}</div>` : ''}
         </div>`; }).join('')}
@@ -945,7 +961,7 @@ async function cargarDatos() {
   }
   PULSOS = construirPulsos(RESPUESTAS);
   const ok = pulsosOk();
-  if (!vista || (vista !== 'comparar' && !PULSOS.some(p => p.key === vista))) vista = ok.length ? ok[ok.length - 1].key : (PULSOS[0] ? PULSOS[0].key : null);
+  if (!vista || (vista !== 'comparar' && vista !== 'abiertas' && !PULSOS.some(p => p.key === vista))) vista = ok.length ? ok[ok.length - 1].key : (PULSOS[0] ? PULSOS[0].key : null);
   cmpA = null; cmpB = null;
   render();
 }
@@ -960,6 +976,7 @@ function tabsHtml() {
   const mesCorto = p => p.label.split(' ')[0];
   return `<div class="vista-tabs">
     ${PULSOS.map(p => `<button class="vista-tab ${vista === p.key ? 'active' : ''}" style="${vista === p.key ? `background:${p.col.main}; border-color:${p.col.main}; color:${p.col.tinta};` : `border-left:5px solid ${p.col.main};`}" onclick="cambiarVista('${p.key}')">${p.esOtro ? 'Sin identificar' : (p.label.startsWith('Pulso') ? escapeHtml(p.label) : mesCorto(p))}<small>${escapeHtml(p.bloque || '')}${p.ciclo ? ' · ' + escapeHtml(p.ciclo) : ''} · ${p.filas.length} resp.</small></button>`).join('')}
+    ${ok.length >= 1 ? `<button class="vista-tab comparar ${vista === 'abiertas' ? 'active' : ''}" onclick="cambiarVista('abiertas')">💬 Respuestas abiertas<small>Todos los comentarios juntos</small></button>` : ''}
     ${ok.length >= 1 ? `<button class="vista-tab comparar ${vista === 'comparar' ? 'active' : ''}" onclick="cambiarVista('comparar')">⇄ Comparar meses<small>Cómo se mueve cada mes</small></button>` : ''}
   </div>`;
 }
@@ -974,7 +991,10 @@ function render() {
   if (MODO_EJEMPLO) html += `<div class="error-box" style="margin-bottom:18px;">⚠ Estás viendo <strong>datos de ejemplo (ficticios)</strong>, solo para revisar el diseño. Aún no está conectado a tu Google Sheet real.</div>`;
   html += tabsHtml();
 
-  if (vista === 'comparar') {
+  if (vista === 'abiertas') {
+    document.getElementById('brand-dept').textContent = 'Panel de seguimiento · Respuestas abiertas';
+    html += renderAbiertasConsolidado();
+  } else if (vista === 'comparar') {
     document.getElementById('brand-dept').textContent = 'Panel de seguimiento · Comparar meses';
     html += renderComparativo();
   } else {
@@ -1378,6 +1398,99 @@ function toggleAbiertas() {
   const visible = lista.style.display === 'block';
   lista.style.display = visible ? 'none' : 'block';
   btn.textContent = visible ? btn.textContent.replace('Ocultar', 'Ver') : btn.textContent.replace('Ver las', 'Ocultar las');
+}
+
+// ───────────── Vista RESPUESTAS ABIERTAS (consolidado de todos los meses) ─────────────
+let abMes = 'todos', abTema = 'todos', abTono = 'todos';
+const abAbiertos = new Set();
+const TONO_TXT = { positivo: 'Positivo', mixto: 'Mixto', negativo: 'Con queja', neutral: 'Neutro / propuesta' };
+const TONO_TINTA = { positivo: '#2E7D4F', mixto: 'var(--mid-txt)', negativo: 'var(--bad)', neutral: 'var(--ink-muted)' };
+
+function abToggle(el, id) { if (el.open) abAbiertos.add(id); else abAbiertos.delete(id); }
+
+// Junta comentarios idénticos (misma frase) para no repetirlos; guarda cuántas veces y en qué meses aparecen
+function agruparComentarios(lista) {
+  const m = new Map();
+  lista.forEach(x => {
+    const k = norm(x.f.abierta);
+    if (!m.has(k)) m.set(k, { ...x, veces: 0, meses: [] });
+    const g = m.get(k); g.veces++;
+    if (!g.meses.includes(x.p)) g.meses.push(x.p);
+  });
+  return [...m.values()];
+}
+
+function htmlComentarioAb(x) {
+  const an = x.an;
+  const temas = Object.keys(an.temas).slice(0, 3).map(id => `<span class="tema-chip">${TEMAS.find(t => t.id === id).nombre}</span>`).join(' ');
+  return `<div class="abierta-item">
+    <div class="abierta-nivel">${x.meses.map(p => chipMes(p)).join(' ')} · <span style="color:${TONO_TINTA[an.sent]}; font-weight:600;">${TONO_TXT[an.sent]}</span>${an.alertas.length ? ' · <span style="color:var(--bad); font-weight:600;">Para leer con cuidado</span>' : ''}${x.veces > 1 ? ` · <strong>${x.veces} personas lo escribieron igual</strong>` : ''}</div>
+    <div class="abierta-txt">${escapeHtml(x.f.abierta)}</div>
+    <div class="abierta-pie">${escapeHtml(x.veces > 1 ? 'Varios niveles' : nivelVisible(x.p, x.f))}${temas ? ' ' + temas : ''}</div>
+  </div>`;
+}
+
+function renderAbiertasConsolidado() {
+  const ok = pulsosOk();
+  const todos = [];
+  ok.forEach(p => p.filas.filter(f => f.abierta && f.abierta.trim()).forEach(f => todos.push({ p, f, an: analisisFila(f) })));
+
+  let html = `<div class="page-title">Respuestas abiertas</div>
+  <div class="page-sub">Todos los comentarios de todos los meses en un solo lugar · ${todos.length} comentario${todos.length === 1 ? '' : 's'}</div>`;
+  if (!todos.length) return html + `<div class="card"><div class="sin-datos">Todavía no hay comentarios abiertos.</div></div>`;
+
+  const lista = todos.filter(x => (abMes === 'todos' || x.p.key === abMes)
+    && (abTema === 'todos' || (abTema === 'otros' ? !Object.keys(x.an.temas).length : x.an.temas[abTema]))
+    && (abTono === 'todos' || (abTono === 'cuidado' ? x.an.alertas.length : x.an.sent === abTono)));
+
+  // Resumen por mes
+  html += `<div class="card">
+    <div class="card-tag"><span class="dot"></span>Consolidado</div>
+    <h2 style="margin-bottom:12px;">Cuántos comentarios llegaron cada mes</h2>
+    <div class="ab-meses">${ok.map(p => { const n = todos.filter(x => x.p === p).length; const t = { positivo: 0, mixto: 0, negativo: 0, neutral: 0 };
+      todos.filter(x => x.p === p).forEach(x => t[x.an.sent]++);
+      return `<div class="ab-mes">${chipMes(p)}<div class="ab-mes-n"><strong>${n}</strong> comentario${n === 1 ? '' : 's'}</div>${n ? barraTono(t, n) : ''}</div>`; }).join('')}</div>
+  </div>`;
+
+  // Filtros
+  const temasConDatos = TEMAS.filter(t => todos.some(x => x.an.temas[t.id]));
+  html += `<div class="filtro-wrap ab-filtros">
+    <label>Mes:</label><select onchange="abMes=this.value; render();"><option value="todos">Todos</option>${ok.map(p => `<option value="${p.key}" ${abMes === p.key ? 'selected' : ''}>${escapeHtml(p.label)}</option>`).join('')}</select>
+    <label>Tema:</label><select onchange="abTema=this.value; render();"><option value="todos">Todos</option>${temasConDatos.map(t => `<option value="${t.id}" ${abTema === t.id ? 'selected' : ''}>${t.nombre}</option>`).join('')}<option value="otros" ${abTema === 'otros' ? 'selected' : ''}>Sin tema detectado</option></select>
+    <label>Tono:</label><select onchange="abTono=this.value; render();"><option value="todos">Todos</option>${Object.keys(TONO_TXT).map(k => `<option value="${k}" ${abTono === k ? 'selected' : ''}>${TONO_TXT[k]}</option>`).join('')}<option value="cuidado" ${abTono === 'cuidado' ? 'selected' : ''}>Para leer con cuidado</option></select>
+  </div>`;
+
+  // Por tema, desplegable
+  const grupos = TEMAS.map(t => ({ id: t.id, nombre: t.nombre, chip: t.bloque || 'Fuera del banco', items: lista.filter(x => x.an.temas[t.id]) }))
+    .concat([{ id: 'otros', nombre: 'Sin tema detectado', chip: '', items: lista.filter(x => !Object.keys(x.an.temas).length) }])
+    .filter(g => g.items.length).sort((a, b) => b.items.length - a.items.length);
+
+  html += `<div class="card">
+    <div class="card-tag"><span class="dot"></span>Por tema</div>
+    <h2 style="margin-bottom:4px;">Comentarios agrupados por tema</h2>
+    <div class="resumen-nota" style="margin:0 0 14px;">Toca un tema para ver sus comentarios. Un comentario puede aparecer en más de un tema si habla de varias cosas. Los comentarios idénticos se muestran una sola vez.</div>
+    ${grupos.length ? grupos.map(g => {
+      const t = { positivo: 0, mixto: 0, negativo: 0, neutral: 0 }; g.items.forEach(x => t[x.an.sent]++);
+      const porMes = ok.map(p => ({ p, n: g.items.filter(x => x.p === p).length })).filter(o => o.n);
+      const id = 'tema-' + g.id;
+      return `<details class="ab-grupo" ${abAbiertos.has(id) ? 'open' : ''} ontoggle="abToggle(this, '${id}')">
+        <summary><span class="ab-grupo-nombre">${g.nombre}${g.chip ? ` <span class="tema-chip">${escapeHtml(g.chip)}</span>` : ''}</span>
+          <span class="ab-grupo-n"><strong>${g.items.length}</strong> · ${porMes.map(o => chipMes(o.p, o.p.label.split(' ')[0].slice(0, 3) + ' ' + o.n)).join(' ')}</span></summary>
+        <div class="ab-grupo-body">${barraTono(t, g.items.length)}${agruparComentarios(g.items).map(htmlComentarioAb).join('')}</div>
+      </details>`;
+    }).join('') : '<div class="sin-datos">Ningún comentario coincide con los filtros.</div>'}
+  </div>`;
+
+  // Todos, en orden por mes
+  const id = 'todos-lista';
+  html += `<div class="card">
+    <details class="ab-grupo ab-todos" ${abAbiertos.has(id) ? 'open' : ''} ontoggle="abToggle(this, '${id}')">
+      <summary><span class="ab-grupo-nombre">Ver todos los comentarios, mes por mes</span><span class="ab-grupo-n"><strong>${lista.length}</strong></span></summary>
+      <div class="ab-grupo-body">${ok.map(p => { const items = agruparComentarios(lista.filter(x => x.p === p));
+        return items.length ? `<div class="ab-mes-titulo">${chipMes(p, p.label)}</div>${items.map(htmlComentarioAb).join('')}` : ''; }).join('')}</div>
+    </details>
+  </div>`;
+  return html;
 }
 
 // ───────────── Vista COMPARAR MESES ─────────────
